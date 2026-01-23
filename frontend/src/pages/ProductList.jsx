@@ -1,0 +1,145 @@
+import { useState } from 'react'
+import { Link } from 'react-router-dom'
+
+import { products } from '../data/products'
+
+const ProductList = () => {
+    const [selectedCategory, setSelectedCategory] = useState('All')
+    const [priceRange, setPriceRange] = useState([0, 100000])
+    const [sortBy, setSortBy] = useState('popular')
+
+    return (
+        <div className="bg-gray-50 min-h-screen py-12">
+            <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
+                {/* Header */}
+                <div className="flex flex-col md:flex-row justify-between items-center mb-12">
+                    <div>
+                        <h1 className="text-3xl font-bold text-gray-900 mb-2">Our Collection</h1>
+                        <p className="text-gray-500">Discover hand-picked premium furniture for your home</p>
+                    </div>
+
+                    <div className="flex items-center space-x-4 mt-4 md:mt-0">
+                        <select
+                            value={sortBy}
+                            onChange={(e) => setSortBy(e.target.value)}
+                            className="px-4 py-2 border border-gray-200 rounded-lg bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#8b5e3c]"
+                        >
+                            <option value="popular">Most Popular</option>
+                            <option value="newest">Newest Arrivals</option>
+                            <option value="price_low">Price: Low to High</option>
+                            <option value="price_high">Price: High to Low</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div className="flex flex-col lg:flex-row gap-8">
+                    {/* Filters Sidebar */}
+                    <div className="w-full lg:w-64 flex-shrink-0">
+                        <div className="bg-white p-6 rounded-xl border border-gray-200 sticky top-24">
+                            <h3 className="text-lg font-semibold mb-6">Filters</h3>
+
+                            <div className="mb-8">
+                                <h4 className="text-sm font-medium text-gray-900 mb-4 uppercase tracking-wider">Categories</h4>
+                                <div className="space-y-3">
+                                    {['All', 'Beds', 'Sofas', 'Dining', 'Tables'].map((category) => (
+                                        <label key={category} className="flex items-center space-x-3 cursor-pointer group">
+                                            <input
+                                                type="radio"
+                                                name="category"
+                                                checked={selectedCategory === category}
+                                                onChange={() => setSelectedCategory(category)}
+                                                className="form-radio h-4 w-4 text-[#8b5e3c] border-gray-300 focus:ring-[#8b5e3c]"
+                                            />
+                                            <span className={`text-sm ${selectedCategory === category ? 'text-gray-900 font-medium' : 'text-gray-500 group-hover:text-gray-700'}`}>
+                                                {category}
+                                            </span>
+                                        </label>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div>
+                                <h4 className="text-sm font-medium text-gray-900 mb-4 uppercase tracking-wider">Price Range</h4>
+                                <div className="space-y-4">
+                                    <div className="flex items-center space-x-4">
+                                        <input
+                                            type="number"
+                                            placeholder="Min"
+                                            className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm"
+                                        />
+                                        <span className="text-gray-400">-</span>
+                                        <input
+                                            type="number"
+                                            placeholder="Max"
+                                            className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm"
+                                        />
+                                    </div>
+                                    <button className="w-full py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors">
+                                        Apply Filter
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Product Grid */}
+                    <div className="flex-1">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {products
+                                .filter(product => selectedCategory === 'All' || product.category === selectedCategory)
+                                .map((product) => (
+                                    <Link to={`/product/${product.id}`} key={product.id} className="group">
+                                        <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300">
+                                            <div className="relative aspect-[4/3] overflow-hidden bg-gray-100">
+                                                <img
+                                                    src={product.image}
+                                                    alt={product.name}
+                                                    className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
+                                                />
+                                                {product.tag && (
+                                                    <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full">
+                                                        <span className="text-xs font-bold uppercase tracking-wider text-[#8b5e3c]">{product.tag}</span>
+                                                    </div>
+                                                )}
+                                                <button className="absolute bottom-4 right-4 bg-white p-2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 hover:bg-[#8b5e3c]/10">
+                                                    <svg className="w-5 h-5 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                                    </svg>
+                                                </button>
+                                            </div>
+
+                                            <div className="p-5">
+                                                <div className="flex justify-between items-start mb-2">
+                                                    <div className="text-xs font-medium text-[#8b5e3c] uppercase tracking-wide">{product.category}</div>
+                                                    <div className="flex items-center text-amber-400 text-xs">
+                                                        <span className="font-bold mr-1">{product.rating}</span>
+                                                        <svg className="w-3 h-3 fill-current" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" /></svg>
+                                                        <span className="text-gray-400 ml-1">({product.reviews})</span>
+                                                    </div>
+                                                </div>
+
+                                                <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-[#8b5e3c] transition-colors">{product.name}</h3>
+
+                                                <div className="flex items-center justify-between mt-4">
+                                                    <span className="text-xl font-bold text-gray-900">₹{product.price.toLocaleString()}</span>
+                                                    <span className="text-sm font-medium text-[#8b5e3c] hover:text-[#70482d]">View Details →</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </Link>
+                                ))}
+                        </div>
+
+                        <div className="mt-12 flex justify-center">
+                            <button className="px-8 py-3 bg-white border border-[#8b5e3c] text-[#8b5e3c] font-semibold rounded-full hover:bg-[#8b5e3c] hover:text-white transition-colors shadow-sm hover:shadow-md">
+                                Load More Products
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    )
+}
+
+export default ProductList

@@ -68,7 +68,7 @@ const PoliciesSection = () => {
                     <h2 className="text-2xl sm:text-3xl md:text-4xl font-normal text-gray-900 mb-2 sm:mb-3">
                         Top Notch Policies
                     </h2>
-                    <div className="w-24 sm:w-32 h-0.5 sm:h-1 bg-yellow-500 mx-auto"></div>
+                    <div className="w-24 sm:w-32 h-0.5 sm:h-1 bg-[#8b5e3c] mx-auto"></div>
                 </div>
 
                 {/* Policies Grid */}

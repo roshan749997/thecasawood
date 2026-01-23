@@ -58,7 +58,7 @@ const PopularCategories = () => {
                             </div>
 
                             {/* Title */}
-                            <h3 className="text-sm sm:text-base font-medium text-gray-700 text-center group-hover:text-rose-500 transition-colors">
+                            <h3 className="text-sm sm:text-base font-medium text-gray-700 text-center group-hover:text-[#8b5e3c] transition-colors">
                                 {category.title}
                             </h3>
                         </div>

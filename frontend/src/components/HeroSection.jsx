@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+  import React, { useEffect, useRef, useState } from 'react';
 
 const HeroSection = () => {
   const [index, setIndex] = useState(0);
@@ -76,7 +76,7 @@ const HeroSection = () => {
         <button
           type="button"
           onClick={prev}
-          className="absolute left-2 sm:left-3 md:left-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-gray-800 rounded-full w-9 h-9 sm:w-10 sm:h-10 md:w-12 md:h-12 flex items-center justify-center shadow-lg transition-all duration-300 hover:scale-110 active:scale-95 z-10 touch-manipulation"
+          className="absolute left-2 sm:left-3 md:left-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-[#8b5e3c] hover:text-white text-[#8b5e3c] rounded-full w-9 h-9 sm:w-10 sm:h-10 md:w-12 md:h-12 flex items-center justify-center shadow-lg transition-all duration-300 hover:scale-110 active:scale-95 z-10 touch-manipulation"
           aria-label="Previous"
         >
           <svg className="w-4 h-4 sm:w-5 sm:h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" /></svg>
@@ -84,7 +84,7 @@ const HeroSection = () => {
         <button
           type="button"
           onClick={next}
-          className="absolute right-2 sm:right-3 md:right-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-gray-800 rounded-full w-9 h-9 sm:w-10 sm:h-10 md:w-12 md:h-12 flex items-center justify-center shadow-lg transition-all duration-300 hover:scale-110 active:scale-95 z-10 touch-manipulation"
+          className="absolute right-2 sm:right-3 md:right-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-[#8b5e3c] hover:text-white text-[#8b5e3c] rounded-full w-9 h-9 sm:w-10 sm:h-10 md:w-12 md:h-12 flex items-center justify-center shadow-lg transition-all duration-300 hover:scale-110 active:scale-95 z-10 touch-manipulation"
           aria-label="Next"
         >
           <svg className="w-4 h-4 sm:w-5 sm:h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
@@ -97,7 +97,7 @@ const HeroSection = () => {
               key={i}
               type="button"
               onClick={() => setIndex(i)}
-              className={`${i === index ? 'w-6 sm:w-8 bg-black/70' : 'w-3 sm:w-4 bg-black/30'} h-1.5 sm:h-2 rounded-full transition-all duration-300 hover:bg-black/50 active:scale-90 touch-manipulation`}
+              className={`${i === index ? 'w-6 sm:w-8 bg-[#8b5e3c]' : 'w-3 sm:w-4 bg-black/30'} h-1.5 sm:h-2 rounded-full transition-all duration-300 hover:bg-[#8b5e3c]/70 active:scale-90 touch-manipulation`}
               aria-label={`Go to slide ${i + 1}`}
             />
           ))}

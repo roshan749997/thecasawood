@@ -1,15 +1,16 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 
 const Navbar = () => {
     const [activeLink, setActiveLink] = useState('Beds')
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
     const navLinks = [
-        { name: 'Beds', href: '#beds' },
-        { name: 'Coffee & Center Tables', href: '#coffee-tables' },
-        { name: 'Dining Tables', href: '#dining-tables' },
-        { name: 'Polyester Fabric Sofas', href: '#polyester-sofas' },
-        { name: 'Leatherette Sofas', href: '#leatherette-sofas' },
+        { name: 'Beds', to: '/products' },
+        { name: 'Coffee & Center Tables', to: '/products' },
+        { name: 'Dining Tables', to: '/products' },
+        { name: 'Polyester Fabric Sofas', to: '/products' },
+        { name: 'Leatherette Sofas', to: '/products' },
     ]
 
     const rightLinks = [
@@ -36,18 +37,18 @@ const Navbar = () => {
                     {/* Mobile Right Icons */}
                     <div className="flex items-center space-x-2 sm:space-x-3">
                         {/* Cart Icon - Mobile */}
-                        <a href="#cart" className="p-1.5 sm:p-2 text-gray-600 hover:text-gray-900 relative touch-manipulation">
+                        <Link to="/cart" className="p-1.5 sm:p-2 text-gray-600 hover:text-[#8b5e3c] relative touch-manipulation">
                             <svg className="w-5 h-5 sm:w-6 sm:h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                 <path d="M9 2L7.17 4H3C2.45 4 2 4.45 2 5C2 5.55 2.45 6 3 6H4L7.6 13.59L6.25 16.04C5.52 17.37 6.48 19 8 19H19C19.55 19 20 18.55 20 18C20 17.45 19.55 17 19 17H8L9.1 15H16.55C17.3 15 17.96 14.59 18.3 13.97L21.88 7.48C22.25 6.82 21.77 6 21.01 6H6.21L5.27 4H9V2Z" />
                                 <circle cx="8" cy="20.5" r="1.5" fill="currentColor" />
                                 <circle cx="17" cy="20.5" r="1.5" fill="currentColor" />
                             </svg>
-                        </a>
+                        </Link>
 
                         {/* Hamburger Menu */}
                         <button
                             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                            className="p-1.5 sm:p-2 text-gray-600 hover:text-gray-900 touch-manipulation"
+                            className="p-1.5 sm:p-2 text-gray-600 hover:text-[#8b5e3c] touch-manipulation"
                             aria-label="Menu"
                             aria-expanded={isMobileMenuOpen}
                         >
@@ -69,27 +70,29 @@ const Navbar = () => {
                     {/* Left Navigation Links */}
                     <div className="flex items-center space-x-1 xl:space-x-2 2xl:space-x-3 flex-1 min-w-0">
                         {navLinks.map((link) => (
-                            <a
+                            <Link
                                 key={link.name}
-                                href={link.href}
+                                to={link.to}
                                 onClick={() => setActiveLink(link.name)}
                                 className={`text-[9px] xl:text-[10px] 2xl:text-[11px] font-semibold tracking-wide transition-all duration-200 whitespace-nowrap uppercase truncate ${activeLink === link.name
-                                    ? 'text-rose-400 border border-rose-400 rounded-full px-2 xl:px-3 2xl:px-4 py-1.5'
-                                    : 'text-gray-900 hover:text-rose-400 px-1.5 xl:px-2 py-1.5'
+                                    ? 'text-[#8b5e3c] border border-[#8b5e3c] rounded-full px-2 xl:px-3 2xl:px-4 py-1.5'
+                                    : 'text-gray-900 hover:text-[#8b5e3c] px-1.5 xl:px-2 py-1.5'
                                     }`}
                             >
                                 {link.name}
-                            </a>
+                            </Link>
                         ))}
                     </div>
 
                     {/* Center Logo */}
                     <div className="absolute left-1/2 transform -translate-x-1/2 z-10">
-                        <img
-                            src="https://res.cloudinary.com/dvkxgrcbv/image/upload/v1769077778/Casawood_logo_500x-8_pzbmu9.png"
-                            alt="Casawood Logo"
-                            className="h-12 xl:h-14 w-auto object-contain"
-                        />
+                        <Link to="/">
+                            <img
+                                src="https://res.cloudinary.com/dvkxgrcbv/image/upload/v1769077778/Casawood_logo_500x-8_pzbmu9.png"
+                                alt="Casawood Logo"
+                                className="h-12 xl:h-14 w-auto object-contain"
+                            />
+                        </Link>
                     </div>
 
                     {/* Right - Search and Icons */}
@@ -113,11 +116,11 @@ const Navbar = () => {
                         </div>
 
                         {/* Track Your Order - Desktop */}
-                        <a href="#track-order" className="hidden 2xl:flex items-center space-x-2 hover:opacity-80 transition-opacity whitespace-nowrap">
+                        <a href="#track-order" className="hidden 2xl:flex items-center space-x-2 hover:opacity-100 hover:text-[#8b5e3c] transition-all whitespace-nowrap group">
                             <svg className="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
                                 <path d="M18 18.5a1.5 1.5 0 01-1.5-1.5 1.5 1.5 0 011.5-1.5 1.5 1.5 0 011.5 1.5 1.5 1.5 0 01-1.5 1.5m1.5-9l1.96 2.5H17V9.5M6 18.5A1.5 1.5 0 014.5 17 1.5 1.5 0 016 15.5 1.5 1.5 0 017.5 17 1.5 1.5 0 016 18.5M20 8h-3V4H3c-1.11 0-2 .89-2 2v11h2a3 3 0 003 3 3 3 0 003-3h6a3 3 0 003 3 3 3 0 003-3h2v-5l-3-4z" />
                             </svg>
-                            <span className="text-[10px] 2xl:text-[11px] font-semibold text-gray-400 uppercase tracking-wide">
+                            <span className="text-[10px] 2xl:text-[11px] font-semibold text-gray-400 group-hover:text-[#8b5e3c] uppercase tracking-wide">
                                 Track Your Order
                             </span>
                         </a>
@@ -125,7 +128,7 @@ const Navbar = () => {
                         {/* Icons */}
                         <div className="flex items-center space-x-1.5 xl:space-x-2 2xl:space-x-3">
                             {/* Location Icon */}
-                            <a href="#location" className="hover:opacity-80 transition-opacity p-1 touch-manipulation">
+                            <a href="#location" className="hover:text-[#8b5e3c] transition-colors p-1 touch-manipulation">
                                 <svg className="w-5 h-5 xl:w-6 xl:h-6" viewBox="0 0 24 24" fill="none">
                                     <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="none" stroke="#374151" strokeWidth="1.5" />
                                     <circle cx="12" cy="9" r="2" fill="none" stroke="#374151" strokeWidth="1.5" />
@@ -133,7 +136,7 @@ const Navbar = () => {
                             </a>
 
                             {/* Profile Icon */}
-                            <a href="#profile" className="hover:opacity-80 transition-opacity p-1 touch-manipulation">
+                            <a href="#profile" className="hover:text-[#8b5e3c] transition-colors p-1 touch-manipulation">
                                 <svg className="w-5 h-5 xl:w-6 xl:h-6" viewBox="0 0 24 24" fill="none">
                                     <circle cx="12" cy="8" r="3.5" fill="none" stroke="#374151" strokeWidth="1.5" />
                                     <path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6" fill="none" stroke="#374151" strokeWidth="1.5" strokeLinecap="round" />
@@ -141,14 +144,14 @@ const Navbar = () => {
                             </a>
 
                             {/* Wishlist Icon */}
-                            <a href="#wishlist" className="hover:opacity-80 transition-opacity p-1 touch-manipulation">
+                            <a href="#wishlist" className="hover:text-[#8b5e3c] transition-colors p-1 touch-manipulation">
                                 <svg className="w-5 h-5 xl:w-6 xl:h-6" viewBox="0 0 24 24" fill="none">
                                     <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="none" stroke="#374151" strokeWidth="1.5" />
                                 </svg>
                             </a>
 
                             {/* Cart Icon */}
-                            <a href="#cart" className="hover:opacity-80 transition-opacity p-1 relative touch-manipulation">
+                            <a href="#cart" className="hover:text-[#8b5e3c] transition-colors p-1 relative touch-manipulation">
                                 <svg className="w-5 h-5 xl:w-6 xl:h-6" viewBox="0 0 24 24" fill="none">
                                     <path d="M9 2L7.17 4H3C2.45 4 2 4.45 2 5C2 5.55 2.45 6 3 6H4L7.6 13.59L6.25 16.04C5.52 17.37 6.48 19 8 19H19C19.55 19 20 18.55 20 18C20 17.45 19.55 17 19 17H8L9.1 15H16.55C17.3 15 17.96 14.59 18.3 13.97L21.88 7.48C22.25 6.82 21.77 6 21.01 6H6.21L5.27 4H9V2Z" fill="none" stroke="#374151" strokeWidth="1.5" />
                                     <circle cx="8" cy="20.5" r="1.5" fill="#374151" />
@@ -168,7 +171,7 @@ const Navbar = () => {
                                 <input
                                     type="text"
                                     placeholder="Search products..."
-                                    className="w-full pl-10 pr-4 py-2.5 text-sm text-gray-700 bg-gray-50 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-rose-400 focus:bg-white"
+                                    className="w-full pl-10 pr-4 py-2.5 text-sm text-gray-700 bg-gray-50 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#8b5e3c] focus:bg-white"
                                 />
                                 <svg
                                     className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400"
@@ -184,20 +187,20 @@ const Navbar = () => {
                         {/* Mobile Navigation Links */}
                         <div className="px-3 sm:px-4 py-2 max-h-[60vh] overflow-y-auto">
                             {navLinks.map((link) => (
-                                <a
+                                <Link
                                     key={link.name}
-                                    href={link.href}
+                                    to={link.to}
                                     onClick={() => {
                                         setActiveLink(link.name)
                                         setIsMobileMenuOpen(false)
                                     }}
                                     className={`block py-3 px-4 text-sm font-semibold tracking-wide uppercase transition-all duration-200 border-b border-gray-100 last:border-b-0 touch-manipulation ${activeLink === link.name
-                                        ? 'text-rose-400 bg-rose-50 rounded-lg'
-                                        : 'text-gray-900 hover:text-rose-400 hover:bg-gray-50 active:bg-gray-100'
+                                        ? 'text-[#8b5e3c] bg-[#8b5e3c]/10 rounded-lg'
+                                        : 'text-gray-900 hover:text-[#8b5e3c] hover:bg-gray-50 active:bg-gray-100'
                                         }`}
                                 >
                                     {link.name}
-                                </a>
+                                </Link>
                             ))}
                         </div>
 

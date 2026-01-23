@@ -10,7 +10,7 @@ const StyleInspiration = () => {
                     <div className="w-full lg:w-1/2 relative">
                         <div className="w-full aspect-[4/3] overflow-hidden rounded-2xl shadow-xl">
                             <img
-                                src="https://res.cloudinary.com/dvkxgrcbv/image/upload/v1769150931/Brown_Neutral_Modern_Wooden_Furniture_Instagram_Post_100_x_140_px_2_stwbrl.svg"
+                                src="https://res.cloudinary.com/dvkxgrcbv/image/upload/v1769161917/Neutral_Modern_Furniture_Catalog_Document_100_x_140_px_140_x_100_px_1_eplmno.svg"
                                 alt="Modern Living Room"
                                 className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
                             />
@@ -18,7 +18,7 @@ const StyleInspiration = () => {
                         {/* Floating Small Image */}
                         <div className="absolute -bottom-10 -right-4 md:-right-10 w-1/2 aspect-square overflow-hidden rounded-xl border-8 border-[#f9f5f1] shadow-2xl hidden sm:block">
                             <img
-                                src="https://res.cloudinary.com/dvkxgrcbv/image/upload/v1769087050/Green_and_White_Elegant_Bedroom_Design_Instagram_Post_1080_x_1080_px_k8pbw2.svg"
+                                src="https://res.cloudinary.com/dvkxgrcbv/image/upload/v1769149205/b1d2e040-e522-409c-a175-e51834a83c0f.png"
                                 alt="Detail Shot"
                                 className="w-full h-full object-cover"
                             />

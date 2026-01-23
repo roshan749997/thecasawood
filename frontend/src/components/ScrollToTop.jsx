@@ -37,11 +37,11 @@ const ScrollToTop = () => {
             {isVisible && (
                 <button
                     onClick={scrollToTop}
-                    className="fixed bottom-8 right-8 z-50 p-3 bg-[#8b5e3c] text-white rounded-full shadow-lg hover:bg-[#5c4033] transition-all duration-300 transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-[#8b5e3c] focus:ring-offset-2 animate-bounce-subtle"
+                    className="fixed bottom-20 right-4 lg:bottom-8 lg:right-8 z-50 p-2 bg-[#8b5e3c] text-white rounded-full shadow-lg hover:bg-[#5c4033] transition-all duration-300 transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-[#8b5e3c] focus:ring-offset-2 animate-bounce-subtle"
                     aria-label="Scroll to top"
                 >
                     <svg
-                        className="w-6 h-6"
+                        className="w-5 h-5"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"

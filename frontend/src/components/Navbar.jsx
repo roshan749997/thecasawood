@@ -27,11 +27,13 @@ const Navbar = () => {
                 <div className="flex items-center justify-between h-16 md:h-18 lg:hidden">
                     {/* Mobile Logo */}
                     <div className="flex-shrink-0">
-                        <img
-                            src="https://res.cloudinary.com/dvkxgrcbv/image/upload/v1769077778/Casawood_logo_500x-8_pzbmu9.png"
-                            alt="Casawood Logo"
-                            className="h-8 sm:h-10 w-auto object-contain"
-                        />
+                        <Link to="/">
+                            <img
+                                src="https://res.cloudinary.com/dvkxgrcbv/image/upload/v1769077778/Casawood_logo_500x-8_pzbmu9.png"
+                                alt="Casawood Logo"
+                                className="h-8 sm:h-10 w-auto object-contain"
+                            />
+                        </Link>
                     </div>
 
                     {/* Mobile Right Icons */}

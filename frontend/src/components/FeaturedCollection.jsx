@@ -8,28 +8,28 @@ const FeaturedCollection = () => {
             title: 'Premium Sofas & Recliners',
             category: 'Sofas',
             price: '34,999',
-            image: 'https://res.cloudinary.com/dvkxgrcbv/image/upload/v1769148343/Photo_Home_Design_Elegant_Instagram_Post_1080_x_1080_px_90_x_140_px_80_x_140_px_100_x_140_px_sjgeuq.svg',
+            image: 'https://res.cloudinary.com/dvkxgrcbv/image/upload/v1769152582/Photo_Home_Design_Elegant_Instagram_Post_1080_x_1080_px_90_x_140_px_80_x_140_px_100_x_140_px_1_n9jgom.svg',
         },
         {
             id: 2,
             title: 'Cosy Beds',
             category: 'Beds',
             price: '21,999',
-            image: 'https://res.cloudinary.com/dvkxgrcbv/image/upload/v1769149213/Green_and_White_Elegant_Bedroom_Design_Instagram_Post_100_x_140_px_cqgsjb.svg',
+            image: 'https://res.cloudinary.com/dvkxgrcbv/image/upload/v1769152425/Green_and_White_Elegant_Bedroom_Design_Instagram_Post_100_x_140_px_1_ofg75r.svg',
         },
         {
             id: 3,
             title: 'Timeless Dining',
             category: 'Dining',
             price: '41,000',
-            image: 'https://res.cloudinary.com/dvkxgrcbv/image/upload/v1769150810/Brown_Simple_Minimalist_Aesthetic_Dining_Table_Instagram_Post_1_rsslpw.svg',
+            image: 'https://res.cloudinary.com/dvkxgrcbv/image/upload/v1769152881/Brown_Simple_Minimalist_Aesthetic_Dining_Table_Instagram_Post_2_l4aikc.svg',
         },
         {
             id: 4,
             title: 'Modern Living',
             category: 'Sofas',
             price: '15,999',
-            image: 'https://res.cloudinary.com/dvkxgrcbv/image/upload/v1769150931/Brown_Neutral_Modern_Wooden_Furniture_Instagram_Post_100_x_140_px_2_stwbrl.svg',
+            image: 'https://res.cloudinary.com/dvkxgrcbv/image/upload/v1769152203/Brown_Neutral_Modern_Wooden_Furniture_Instagram_Post_100_x_140_px_5_sj1kyl.svg',
         },
     ];
 

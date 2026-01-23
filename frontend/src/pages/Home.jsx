@@ -4,6 +4,7 @@ import FeaturedCollection from '../components/FeaturedCollection'
 import StyleInspiration from '../components/StyleInspiration'
 
 
+import BestSeller from '../components/BestSeller'
 import InteriorSolutions from '../components/InteriorSolutions'
 import ModernLuxury from '../components/ModernLuxury'
 import CraftsmanshipSection from '../components/CraftsmanshipSection'
@@ -18,6 +19,7 @@ const Home = () => {
             <PopularCategories />
             <StyleInspiration />
             <FeaturedCollection />
+            <BestSeller />
 
             <InteriorSolutions />
             <ModernLuxury />

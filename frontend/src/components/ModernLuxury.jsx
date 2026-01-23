@@ -8,7 +8,13 @@ const ModernLuxury = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
 
                     {/* Visual Side */}
-                    <div className="relative order-2 lg:order-1">
+                    <div className="relative order-1 lg:order-1">
+                        {/* New Arrival Badge - Mobile Only */}
+                        <div className="text-center mb-6 lg:hidden">
+                            <span className="inline-block py-1 px-3 border border-[#8b5e3c] rounded-full text-[#8b5e3c] text-xs font-bold tracking-wider uppercase">
+                                New Arrival
+                            </span>
+                        </div>
                         <div className="relative z-10 w-full max-w-md mx-auto aspect-square rounded-t-full overflow-hidden shadow-2xl">
                             <img
                                 src="https://res.cloudinary.com/dvkxgrcbv/image/upload/v1769154872/Brown_Elegant_Minimalist_Furniture_Instagram_Post_nspjpj.svg"
@@ -39,8 +45,8 @@ const ModernLuxury = () => {
                     </div>
 
                     {/* Content Side */}
-                    <div className="order-1 lg:order-2 text-center">
-                        <span className="inline-block py-1 px-3 border border-[#8b5e3c] rounded-full text-[#8b5e3c] text-xs font-bold tracking-wider uppercase mb-6">
+                    <div className="order-2 lg:order-2 text-center">
+                        <span className="hidden lg:inline-block py-1 px-3 border border-[#8b5e3c] rounded-full text-[#8b5e3c] text-xs font-bold tracking-wider uppercase mb-6">
                             New Arrival
                         </span>
                         <h2 className="text-4xl sm:text-5xl lg:text-6xl font-serif text-gray-900 mb-4 leading-none">

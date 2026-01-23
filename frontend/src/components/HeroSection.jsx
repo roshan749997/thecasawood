@@ -3,14 +3,16 @@ import React, { useEffect, useRef, useState } from 'react';
 const HeroSection = () => {
   const [index, setIndex] = useState(0);
   const timerRef = useRef(null);
-  
+
   const banners = [
     {
       desktop: "https://res.cloudinary.com/dvkxgrcbv/image/upload/v1769079901/Grey_Modern_Furniture_Sofa_For_sale_Banner_1920_x_600_mm_yljnle.svg",
+      mobile: "https://res.cloudinary.com/dvkxgrcbv/image/upload/v1769085676/White_Modern_Minimalist_Minimalist_Furniture_Instagram_Post_-_RA364_1080_x_1080_px_ap7m3a.svg",
       alt: "Modern Furniture Sofa Banner"
     },
     {
       desktop: "https://res.cloudinary.com/dvkxgrcbv/image/upload/v1769081274/Brown_Minimalist_Furniture_Banner_Landscape_1920_x_600_mm_dwd9gl.svg",
+      mobile: "https://res.cloudinary.com/dvkxgrcbv/image/upload/v1769086805/Beige_Modern_Luxury_Real_Estate_Instagram_Post_1080_x_1080_px_iessfn.png",
       alt: "Brown Minimalist Furniture Banner"
     }
   ];
@@ -48,7 +50,7 @@ const HeroSection = () => {
       <div className="hidden md:block relative overflow-hidden">
         <div
           className="flex will-change-transform"
-          style={{ 
+          style={{
             transform: `translateX(-${index * 100}%)`,
             transition: 'transform 700ms cubic-bezier(0.4, 0, 0.2, 1)'
           }}
@@ -77,7 +79,7 @@ const HeroSection = () => {
           className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 rounded-full w-10 h-10 flex items-center justify-center shadow transition-all duration-300 hover:scale-110 z-10"
           aria-label="Previous"
         >
-          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"/></svg>
+          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" /></svg>
         </button>
         <button
           type="button"
@@ -85,7 +87,7 @@ const HeroSection = () => {
           className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 rounded-full w-10 h-10 flex items-center justify-center shadow transition-all duration-300 hover:scale-110 z-10"
           aria-label="Next"
         >
-          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"/></svg>
+          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
         </button>
 
         {/* Dots */}
@@ -102,9 +104,26 @@ const HeroSection = () => {
         </div>
       </div>
 
-      {/* Mobile single image */}
-      <div className="md:hidden block">
-        <img src={banners[0]?.desktop} alt="Banner" className="w-full h-auto object-cover block" loading="lazy" />
+      {/* Mobile slider */}
+      <div className="md:hidden block relative overflow-hidden">
+        <div
+          className="flex will-change-transform"
+          style={{
+            transform: `translateX(-${index * 100}%)`,
+            transition: 'transform 700ms cubic-bezier(0.4, 0, 0.2, 1)'
+          }}
+        >
+          {banners.map((s, i) => (
+            <img
+              key={i}
+              src={s.mobile}
+              alt={s.alt || `Banner ${i + 1}`}
+              className="w-full h-auto object-cover block shrink-0 grow-0 basis-full select-none"
+              loading="eager"
+              draggable="false"
+            />
+          ))}
+        </div>
       </div>
     </section>
   );

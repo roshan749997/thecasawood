@@ -7,22 +7,31 @@ const ProductList = () => {
     const [selectedCategory, setSelectedCategory] = useState('All')
     const [priceRange, setPriceRange] = useState([0, 100000])
     const [sortBy, setSortBy] = useState('popular')
+    const [isFilterOpen, setIsFilterOpen] = useState(false)
 
     return (
         <div className="bg-gray-50 min-h-screen py-12">
             <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Header */}
-                <div className="flex flex-col md:flex-row justify-between items-center mb-12">
-                    <div>
+                <div className="flex flex-col md:flex-row justify-between items-center mb-8">
+                    <div className="text-center md:text-left mb-4 md:mb-0">
                         <h1 className="text-3xl font-bold text-gray-900 mb-2">Our Collection</h1>
                         <p className="text-gray-500">Discover hand-picked premium furniture for your home</p>
                     </div>
 
-                    <div className="flex items-center space-x-4 mt-4 md:mt-0">
+                    <div className="flex items-center gap-4 w-full md:w-auto">
+                        <button
+                            onClick={() => setIsFilterOpen(true)}
+                            className="lg:hidden flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 border border-gray-200 rounded-lg bg-white text-sm font-medium hover:bg-gray-50 transition-colors"
+                        >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg>
+                            Filters
+                        </button>
+
                         <select
                             value={sortBy}
                             onChange={(e) => setSortBy(e.target.value)}
-                            className="px-4 py-2 border border-gray-200 rounded-lg bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#8b5e3c]"
+                            className="flex-1 md:flex-none px-4 py-2 border border-gray-200 rounded-lg bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#8b5e3c]"
                         >
                             <option value="popular">Most Popular</option>
                             <option value="newest">Newest Arrivals</option>
@@ -34,49 +43,72 @@ const ProductList = () => {
 
                 <div className="flex flex-col lg:flex-row gap-8">
                     {/* Filters Sidebar */}
-                    <div className="w-full lg:w-64 flex-shrink-0">
-                        <div className="bg-white p-6 rounded-xl border border-gray-200 sticky top-24">
-                            <h3 className="text-lg font-semibold mb-6">Filters</h3>
-
-                            <div className="mb-8">
-                                <h4 className="text-sm font-medium text-gray-900 mb-4 uppercase tracking-wider">Categories</h4>
-                                <div className="space-y-3">
-                                    {['All', 'Beds', 'Sofas', 'Dining', 'Tables'].map((category) => (
-                                        <label key={category} className="flex items-center space-x-3 cursor-pointer group">
-                                            <input
-                                                type="radio"
-                                                name="category"
-                                                checked={selectedCategory === category}
-                                                onChange={() => setSelectedCategory(category)}
-                                                className="form-radio h-4 w-4 text-[#8b5e3c] border-gray-300 focus:ring-[#8b5e3c]"
-                                            />
-                                            <span className={`text-sm ${selectedCategory === category ? 'text-gray-900 font-medium' : 'text-gray-500 group-hover:text-gray-700'}`}>
-                                                {category}
-                                            </span>
-                                        </label>
-                                    ))}
-                                </div>
-                            </div>
-
-                            <div>
-                                <h4 className="text-sm font-medium text-gray-900 mb-4 uppercase tracking-wider">Price Range</h4>
-                                <div className="space-y-4">
-                                    <div className="flex items-center space-x-4">
-                                        <input
-                                            type="number"
-                                            placeholder="Min"
-                                            className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm"
-                                        />
-                                        <span className="text-gray-400">-</span>
-                                        <input
-                                            type="number"
-                                            placeholder="Max"
-                                            className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm"
-                                        />
-                                    </div>
-                                    <button className="w-full py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors">
-                                        Apply Filter
+                    <div className={`
+                        fixed inset-0 z-50 bg-black/50 lg:static lg:bg-transparent lg:z-auto transition-opacity duration-300
+                        ${isFilterOpen ? 'opacity-100 visible' : 'opacity-0 invisible lg:opacity-100 lg:visible'}
+                    `} onClick={() => setIsFilterOpen(false)}>
+                        <div
+                            className={`
+                                w-[80%] max-w-xs h-full bg-white lg:w-64 lg:h-auto lg:bg-transparent lg:block
+                                fixed top-0 left-0 lg:static shadow-2xl lg:shadow-none overflow-y-auto lg:overflow-visible
+                                transform transition-transform duration-300 ease-in-out p-6 lg:p-0
+                                ${isFilterOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+                            `}
+                            onClick={e => e.stopPropagation()}
+                        >
+                            <div className="bg-white lg:p-6 lg:rounded-xl lg:border lg:border-gray-200 lg:sticky lg:top-24">
+                                <div className="flex justify-between items-center mb-6 lg:hidden">
+                                    <h3 className="text-xl font-bold text-gray-900">Filters</h3>
+                                    <button onClick={() => setIsFilterOpen(false)} className="p-2 -mr-2 text-gray-500 hover:text-gray-900">
+                                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
                                     </button>
+                                </div>
+
+                                <h3 className="hidden lg:block text-lg font-semibold mb-6">Filters</h3>
+
+                                <div className="mb-8">
+                                    <h4 className="text-sm font-medium text-gray-900 mb-4 uppercase tracking-wider">Categories</h4>
+                                    <div className="space-y-3">
+                                        {['All', 'Beds', 'Sofas', 'Dining', 'Tables'].map((category) => (
+                                            <label key={category} className="flex items-center space-x-3 cursor-pointer group">
+                                                <input
+                                                    type="radio"
+                                                    name="category"
+                                                    checked={selectedCategory === category}
+                                                    onChange={() => {
+                                                        setSelectedCategory(category)
+                                                        setIsFilterOpen(false)
+                                                    }}
+                                                    className="form-radio h-4 w-4 text-[#8b5e3c] border-gray-300 focus:ring-[#8b5e3c]"
+                                                />
+                                                <span className={`text-sm ${selectedCategory === category ? 'text-gray-900 font-medium' : 'text-gray-500 group-hover:text-gray-700'}`}>
+                                                    {category}
+                                                </span>
+                                            </label>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <h4 className="text-sm font-medium text-gray-900 mb-4 uppercase tracking-wider">Price Range</h4>
+                                    <div className="space-y-4">
+                                        <div className="flex items-center space-x-4">
+                                            <input
+                                                type="number"
+                                                placeholder="Min"
+                                                className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm"
+                                            />
+                                            <span className="text-gray-400">-</span>
+                                            <input
+                                                type="number"
+                                                placeholder="Max"
+                                                className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm"
+                                            />
+                                        </div>
+                                        <button className="w-full py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors">
+                                            Apply Filter
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>

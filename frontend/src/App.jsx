@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import ScrollToTop from './components/ScrollToTop'
+import MobileBottomNav from './components/MobileBottomNav'
 
 // Lazy load pages for better performance
 const Home = lazy(() => import('./pages/Home'))
@@ -19,7 +20,7 @@ const PageLoader = () => (
 function App() {
   return (
     <Router>
-      <div className="min-h-screen bg-gray-50 flex flex-col">
+      <div className="min-h-screen bg-gray-50 flex flex-col pb-16 lg:pb-0">
         <ScrollToTop />
         <Navbar />
         <Suspense fallback={<PageLoader />}>
@@ -30,6 +31,7 @@ function App() {
           </Routes>
         </Suspense>
         <Footer />
+        <MobileBottomNav />
       </div>
     </Router>
   )

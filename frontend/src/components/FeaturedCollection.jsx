@@ -45,7 +45,7 @@ const FeaturedCollection = () => {
                 </div>
 
                 {/* Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
                     {features.map((item) => (
                         <Link to={`/products?category=${item.category}`} key={item.id} className="group cursor-pointer">
                             <div className="relative overflow-hidden rounded-2xl mb-4">

@@ -9,6 +9,10 @@ import MobileBottomNav from './components/MobileBottomNav'
 const Home = lazy(() => import('./pages/Home'))
 const ProductList = lazy(() => import('./pages/ProductList'))
 const ProductDetail = lazy(() => import('./pages/ProductDetail'))
+const Cart = lazy(() => import('./pages/Cart'))
+const Address = lazy(() => import('./pages/Address'))
+const Profile = lazy(() => import('./pages/Profile'))
+const Wishlist = lazy(() => import('./pages/Wishlist'))
 
 // Loading component
 const PageLoader = () => (
@@ -28,6 +32,10 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/products" element={<ProductList />} />
             <Route path="/product/:id" element={<ProductDetail />} />
+            <Route path="/cart" element={<Cart />} />
+            <Route path="/address" element={<Address />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/wishlist" element={<Wishlist />} />
           </Routes>
         </Suspense>
         <Footer />

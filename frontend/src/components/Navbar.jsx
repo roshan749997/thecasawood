@@ -97,69 +97,46 @@ const Navbar = () => {
                         </Link>
                     </div>
 
-                    {/* Right - Search and Icons */}
-                    <div className="flex items-center space-x-2 lg:space-x-3 xl:space-x-3 2xl:space-x-4 flex-1 justify-end min-w-0">
-                        {/* Search Bar */}
-                        <div className="relative hidden lg:block">
-                            <input
-                                type="text"
-                                placeholder="Search"
-                                className="w-32 lg:w-36 xl:w-40 2xl:w-56 pl-8 lg:pl-9 pr-3 lg:pr-4 py-1.5 text-xs xl:text-xs 2xl:text-sm text-gray-700 bg-gray-50 rounded-full border border-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:bg-white placeholder:text-gray-400 placeholder:font-normal"
-                            />
-                            <svg
-                                className="absolute left-2.5 lg:left-3 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 lg:w-4 lg:h-4 text-gray-400"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                                strokeWidth="2"
-                            >
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    {/* Right - Track Order and Icons */}
+                    <div className="flex items-center space-x-3 xl:space-x-4 2xl:space-x-6 flex-1 justify-end min-w-0">
+                        {/* Track Your Order */}
+                        <a href="#track-order" className="hidden xl:flex items-center gap-2 text-gray-500 hover:text-[#8b5e3c] transition-colors">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" />
                             </svg>
-                        </div>
-
-                        {/* Track Your Order - Desktop */}
-                        <a href="#track-order" className="hidden 2xl:flex items-center space-x-2 hover:opacity-100 hover:text-[#8b5e3c] transition-all whitespace-nowrap group">
-                            <svg className="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M18 18.5a1.5 1.5 0 01-1.5-1.5 1.5 1.5 0 011.5-1.5 1.5 1.5 0 011.5 1.5 1.5 1.5 0 01-1.5 1.5m1.5-9l1.96 2.5H17V9.5M6 18.5A1.5 1.5 0 014.5 17 1.5 1.5 0 016 15.5 1.5 1.5 0 017.5 17 1.5 1.5 0 016 18.5M20 8h-3V4H3c-1.11 0-2 .89-2 2v11h2a3 3 0 003 3 3 3 0 003-3h6a3 3 0 003 3 3 3 0 003-3h2v-5l-3-4z" />
-                            </svg>
-                            <span className="text-[10px] 2xl:text-[11px] font-semibold text-gray-400 group-hover:text-[#8b5e3c] uppercase tracking-wide">
-                                Track Your Order
-                            </span>
+                            <span className="text-xs font-medium uppercase tracking-wide whitespace-nowrap">Track Your Order</span>
                         </a>
 
                         {/* Icons */}
-                        <div className="flex items-center space-x-1.5 xl:space-x-2 2xl:space-x-3">
+                        <div className="flex items-center space-x-2 xl:space-x-3">
                             {/* Location Icon */}
-                            <a href="#location" className="hover:text-[#8b5e3c] transition-colors p-1 touch-manipulation">
-                                <svg className="w-5 h-5 xl:w-6 xl:h-6" viewBox="0 0 24 24" fill="none">
-                                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="none" stroke="#374151" strokeWidth="1.5" />
-                                    <circle cx="12" cy="9" r="2" fill="none" stroke="#374151" strokeWidth="1.5" />
+                            <a href="#location" className="text-gray-500 hover:text-[#8b5e3c] transition-colors p-1.5">
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
                                 </svg>
                             </a>
 
                             {/* Profile Icon */}
-                            <a href="#profile" className="hover:text-[#8b5e3c] transition-colors p-1 touch-manipulation">
-                                <svg className="w-5 h-5 xl:w-6 xl:h-6" viewBox="0 0 24 24" fill="none">
-                                    <circle cx="12" cy="8" r="3.5" fill="none" stroke="#374151" strokeWidth="1.5" />
-                                    <path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6" fill="none" stroke="#374151" strokeWidth="1.5" strokeLinecap="round" />
+                            <Link to="/profile" className="text-gray-500 hover:text-[#8b5e3c] transition-colors p-1.5">
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
                                 </svg>
-                            </a>
+                            </Link>
 
                             {/* Wishlist Icon */}
-                            <a href="#wishlist" className="hover:text-[#8b5e3c] transition-colors p-1 touch-manipulation">
-                                <svg className="w-5 h-5 xl:w-6 xl:h-6" viewBox="0 0 24 24" fill="none">
-                                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="none" stroke="#374151" strokeWidth="1.5" />
+                            <Link to="/wishlist" className="text-gray-500 hover:text-[#8b5e3c] transition-colors p-1.5">
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
                                 </svg>
-                            </a>
+                            </Link>
 
                             {/* Cart Icon */}
-                            <a href="#cart" className="hover:text-[#8b5e3c] transition-colors p-1 relative touch-manipulation">
-                                <svg className="w-5 h-5 xl:w-6 xl:h-6" viewBox="0 0 24 24" fill="none">
-                                    <path d="M9 2L7.17 4H3C2.45 4 2 4.45 2 5C2 5.55 2.45 6 3 6H4L7.6 13.59L6.25 16.04C5.52 17.37 6.48 19 8 19H19C19.55 19 20 18.55 20 18C20 17.45 19.55 17 19 17H8L9.1 15H16.55C17.3 15 17.96 14.59 18.3 13.97L21.88 7.48C22.25 6.82 21.77 6 21.01 6H6.21L5.27 4H9V2Z" fill="none" stroke="#374151" strokeWidth="1.5" />
-                                    <circle cx="8" cy="20.5" r="1.5" fill="#374151" />
-                                    <circle cx="17" cy="20.5" r="1.5" fill="#374151" />
+                            <Link to="/cart" className="text-gray-500 hover:text-[#8b5e3c] transition-colors p-1.5 relative">
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
                                 </svg>
-                            </a>
+                            </Link>
                         </div>
                     </div>
                 </div>

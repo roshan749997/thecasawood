@@ -17,7 +17,7 @@ const HeroSection = () => {
     },
     {
       desktop: "https://res.cloudinary.com/dvkxgrcbv/image/upload/v1769498382/Green_Minimalist_Home_Furniture_Banner_1920_x_600_mm_pqsvlg.svg",
-      mobile: "https://res.cloudinary.com/dvkxgrcbv/image/upload/v1769498382/Green_Minimalist_Home_Furniture_Banner_1920_x_600_mm_pqsvlg.svg",
+      mobile: "https://res.cloudinary.com/dvkxgrcbv/image/upload/v1769499776/Blue_and_Grey_Chair_Clean_and_Simple_Business_Promo_Instagram_Post_zjvn1i.svg",
       alt: "Green Minimalist Home Furniture Banner"
     }
   ];

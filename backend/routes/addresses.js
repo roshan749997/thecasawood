@@ -87,7 +87,8 @@ router.post('/', [
 
     const addressData = {
       ...req.body,
-      user: req.user._id
+      user: req.user._id,
+      type: req.body.type ? req.body.type.toLowerCase() : 'home'
     };
 
     // If this is set as default, it will automatically unset others
@@ -139,7 +140,10 @@ router.put('/:id', [
       });
     }
 
-    Object.assign(address, req.body);
+    const updates = { ...req.body };
+    if (updates.type) updates.type = updates.type.toLowerCase();
+
+    Object.assign(address, updates);
     await address.save();
 
     res.json({

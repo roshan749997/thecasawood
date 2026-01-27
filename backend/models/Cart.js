@@ -16,7 +16,7 @@ const cartItemSchema = new mongoose.Schema({
     type: Number,
     required: true
   }
-}, { _id: false });
+});
 
 const cartSchema = new mongoose.Schema({
   user: {
@@ -32,14 +32,14 @@ const cartSchema = new mongoose.Schema({
 });
 
 // Calculate total
-cartSchema.methods.calculateTotal = function() {
+cartSchema.methods.calculateTotal = function () {
   return this.items.reduce((total, item) => {
     return total + (item.price * item.quantity);
   }, 0);
 };
 
 // Get item count
-cartSchema.methods.getItemCount = function() {
+cartSchema.methods.getItemCount = function () {
   return this.items.reduce((count, item) => count + item.quantity, 0);
 };
 

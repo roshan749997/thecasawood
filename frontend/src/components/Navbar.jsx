@@ -6,7 +6,7 @@ import CategoryHeader, { navLinks } from './CategoryHeader'
 
 const Navbar = () => {
     const { isAuthenticated, user, logout } = useAuth()
-    const [activeLink, setActiveLink] = useState('Beds')
+    const [activeLink, setActiveLink] = useState(null)
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
     const [showUserMenu, setShowUserMenu] = useState(false)
     const [cartCount, setCartCount] = useState(0)

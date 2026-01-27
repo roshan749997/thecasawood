@@ -59,7 +59,7 @@ const ProductDetail = () => {
             await cartAPI.add({ productId: id, quantity })
             // Trigger cart update event
             window.dispatchEvent(new Event('cartUpdated'))
-            alert('Product added to cart successfully!')
+
             navigate('/cart')
         } catch (error) {
             alert(error.response?.data?.message || 'Failed to add to cart')

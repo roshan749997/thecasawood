@@ -30,6 +30,12 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Fix for Google Auth Cross-Origin-Opener-Policy
+app.use((req, res, next) => {
+  res.setHeader("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
+  next();
+});
+
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
@@ -66,20 +72,20 @@ app.use((req, res) => {
 const connectDB = async () => {
   try {
     const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/casawood';
-    
+
     // Extract cluster/database info from URI for logging
     const uriMatch = mongoUri.match(/mongodb\+srv:\/\/[^@]+@([^/]+)\/([^?]+)/);
     const clusterName = uriMatch ? uriMatch[1] : 'localhost';
     const dbNameFromUri = uriMatch ? uriMatch[2] : 'casawood';
-    
+
     const conn = await mongoose.connect(mongoUri);
     const actualDbName = conn.connection.name;
-    
+
     // Verify database name matches
     if (dbNameFromUri !== actualDbName) {
       console.warn(`⚠️  Warning: URI specifies "${dbNameFromUri}" but connected to "${actualDbName}"`);
     }
-    
+
     console.log(`MongoDB Connected Successfully:`);
     console.log(`  - Cluster: ${clusterName}`);
     console.log(`  - Database (from URI): ${dbNameFromUri}`);

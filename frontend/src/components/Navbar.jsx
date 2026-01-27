@@ -1,20 +1,52 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { cartAPI } from '../services/api'
+import CategoryHeader, { navLinks } from './CategoryHeader'
 
 const Navbar = () => {
     const { isAuthenticated, user, logout } = useAuth()
     const [activeLink, setActiveLink] = useState('Beds')
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
     const [showUserMenu, setShowUserMenu] = useState(false)
+    const [cartCount, setCartCount] = useState(0)
 
-    const navLinks = [
-        { name: 'Beds', to: '/products' },
-        { name: 'Coffee & Center Tables', to: '/products' },
-        { name: 'Dining Tables', to: '/products' },
-        { name: 'Polyester Fabric Sofas', to: '/products' },
-        { name: 'Leatherette Sofas', to: '/products' },
-    ]
+    // Fetch cart count
+    useEffect(() => {
+        const fetchCartCount = async () => {
+            if (!isAuthenticated) {
+                setCartCount(0)
+                return
+            }
+
+            try {
+                const response = await cartAPI.get()
+                if (response.data.success) {
+                    const items = response.data.data?.items || response.data.data || []
+                    const totalCount = items.reduce((sum, item) => sum + (item.quantity || 1), 0)
+                    setCartCount(totalCount)
+                }
+            } catch (error) {
+                console.error('Error fetching cart count:', error)
+                setCartCount(0)
+            }
+        }
+
+        fetchCartCount()
+
+        // Listen for cart update events
+        window.addEventListener('cartUpdated', fetchCartCount)
+
+        // Refresh cart count every 10 seconds
+        const interval = setInterval(fetchCartCount, 10000)
+
+        return () => {
+            window.removeEventListener('cartUpdated', fetchCartCount)
+            clearInterval(interval)
+        }
+    }, [isAuthenticated])
+
+
 
     const handleLogout = () => {
         logout()
@@ -47,6 +79,11 @@ const Navbar = () => {
                                 <circle cx="8" cy="20.5" r="1.5" fill="currentColor" />
                                 <circle cx="17" cy="20.5" r="1.5" fill="currentColor" />
                             </svg>
+                            {cartCount > 0 && (
+                                <span className="absolute -top-0.5 -right-0.5 bg-[#8b5e3c] text-white text-[10px] font-bold rounded-full h-4 w-4 flex items-center justify-center">
+                                    {cartCount > 9 ? '9+' : cartCount}
+                                </span>
+                            )}
                         </Link>
 
                         {/* Hamburger Menu */}
@@ -70,37 +107,27 @@ const Navbar = () => {
                 </div>
 
                 {/* Desktop Header (lg and above) */}
-                <div className="hidden lg:flex items-center h-20 relative">
-                    {/* Left Navigation Links */}
-                    <div className="flex items-center space-x-1 xl:space-x-2 2xl:space-x-3 flex-1 min-w-0">
-                        {navLinks.map((link) => (
-                            <Link
-                                key={link.name}
-                                to={link.to}
-                                onClick={() => setActiveLink(link.name)}
-                                className={`text-[9px] xl:text-[10px] 2xl:text-[11px] font-semibold tracking-wide transition-all duration-200 whitespace-nowrap uppercase truncate ${activeLink === link.name
-                                    ? 'text-[#8b5e3c] border border-[#8b5e3c] rounded-full px-2 xl:px-3 2xl:px-4 py-1.5'
-                                    : 'text-gray-900 hover:text-[#8b5e3c] px-1.5 xl:px-2 py-1.5'
-                                    }`}
-                            >
-                                {link.name}
-                            </Link>
-                        ))}
+                <div className="hidden lg:flex items-center justify-between h-16 relative border-b border-gray-100">
+                    {/* Left - Tagline/Text */}
+                    <div className="flex-1 flex items-center justify-start">
+                        <p className="text-xs font-medium text-[#8b5e3c] uppercase tracking-widest pl-2">
+                            Handcrafted Luxury Furniture
+                        </p>
                     </div>
 
-                    {/* Center Logo */}
-                    <div className="absolute left-1/2 transform -translate-x-1/2 z-10">
+                    {/* Center - Logo */}
+                    <div className="absolute left-1/2 transform -translate-x-1/2">
                         <Link to="/">
                             <img
                                 src="https://res.cloudinary.com/dvkxgrcbv/image/upload/v1769077778/Casawood_logo_500x-8_pzbmu9.png"
                                 alt="Casawood Logo"
-                                className="h-12 xl:h-14 w-auto object-contain"
+                                className="h-10 xl:h-12 w-auto object-contain"
                             />
                         </Link>
                     </div>
 
                     {/* Right - Track Order and Icons */}
-                    <div className="flex items-center space-x-3 xl:space-x-4 2xl:space-x-6 flex-1 justify-end min-w-0">
+                    <div className="flex-1 flex items-center justify-end space-x-4 xl:space-x-6">
                         {/* Track Your Order */}
                         <a href="#track-order" className="hidden xl:flex items-center gap-2 text-gray-500 hover:text-[#8b5e3c] transition-colors">
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5">
@@ -110,8 +137,8 @@ const Navbar = () => {
                         </a>
 
                         {/* Icons */}
-                        <div className="flex items-center space-x-2 xl:space-x-3">
-                            {/* Location Icon */}
+                        <div className="flex items-center space-x-3">
+                            {/* Location */}
                             <a href="#location" className="text-gray-500 hover:text-[#8b5e3c] transition-colors p-1.5">
                                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -119,9 +146,9 @@ const Navbar = () => {
                                 </svg>
                             </a>
 
-                            {/* Profile Icon or Login Button */}
+                            {/* User Menu */}
                             {isAuthenticated ? (
-                                <div className="relative">
+                                <div className="relative group">
                                     <button
                                         onClick={() => setShowUserMenu(!showUserMenu)}
                                         className="flex items-center gap-2 text-gray-500 hover:text-[#8b5e3c] transition-colors p-1.5"
@@ -131,182 +158,158 @@ const Navbar = () => {
                                         </div>
                                     </button>
 
-                                    {/* User Dropdown Menu */}
+                                    {/* Dropdown - Add group-hover:block for easier desktop usage if desired, but click is fine */}
                                     {showUserMenu && (
                                         <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
                                             <div className="px-4 py-3 border-b border-gray-200">
                                                 <p className="text-sm font-semibold text-gray-900">{user?.name}</p>
-                                                <p className="text-xs text-gray-600">{user?.email}</p>
+                                                <p className="text-xs text-gray-600 truncate">{user?.email}</p>
                                             </div>
-                                            <Link
-                                                to="/profile"
-                                                onClick={() => setShowUserMenu(false)}
-                                                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                                            >
-                                                <div className="flex items-center gap-2">
-                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                                    </svg>
-                                                    My Profile
-                                                </div>
+                                            <Link to="/profile" onClick={() => setShowUserMenu(false)} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2">
+                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                                                My Profile
                                             </Link>
-                                            <Link
-                                                to="/wishlist"
-                                                onClick={() => setShowUserMenu(false)}
-                                                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                                            >
-                                                <div className="flex items-center gap-2">
-                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                                                    </svg>
-                                                    My Wishlist
-                                                </div>
+                                            <Link to="/wishlist" onClick={() => setShowUserMenu(false)} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2">
+                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+                                                My Wishlist
                                             </Link>
-                                            <Link
-                                                to="/cart"
-                                                onClick={() => setShowUserMenu(false)}
-                                                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                                            >
-                                                <div className="flex items-center gap-2">
-                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                                                    </svg>
-                                                    My Cart
-                                                </div>
+                                            <Link to="/cart" onClick={() => setShowUserMenu(false)} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2">
+                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
+                                                My Cart
                                             </Link>
-                                            <button
-                                                onClick={handleLogout}
-                                                className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 border-t border-gray-200 mt-2"
-                                            >
-                                                <div className="flex items-center gap-2">
-                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                                                    </svg>
-                                                    Logout
-                                                </div>
+                                            <button onClick={handleLogout} className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 border-t border-gray-200 mt-2 flex items-center gap-2">
+                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+                                                Logout
                                             </button>
                                         </div>
                                     )}
                                 </div>
                             ) : (
-                                <Link
-                                    to="/login"
-                                    className="px-4 py-2 bg-[#8b5e3c] text-white rounded-lg hover:bg-[#70482d] transition-colors text-sm font-medium"
-                                >
+                                <Link to="/login" className="px-4 py-2 bg-[#8b5e3c] text-white rounded-lg hover:bg-[#70482d] transition-colors text-sm font-medium">
                                     Login
                                 </Link>
                             )}
 
-                            {/* Wishlist Icon */}
-                            <Link to="/wishlist" className="text-gray-500 hover:text-[#8b5e3c] transition-colors p-1.5">
+                            {/* Wishlist */}
+                            <Link to="/wishlist" className="text-gray-500 hover:text-[#8b5e3c] transition-colors p-1.5 hidden sm:block">
                                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
                                 </svg>
                             </Link>
 
-                            {/* Cart Icon */}
-                            <Link to="/cart" className="text-gray-500 hover:text-[#8b5e3c] transition-colors p-1.5 relative">
+                            {/* Cart */}
+                            <Link to="/cart" className="text-gray-500 hover:text-[#8b5e3c] transition-colors p-1.5 relative hidden sm:block">
                                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
                                 </svg>
+                                {cartCount > 0 && (
+                                    <span className="absolute -top-1 -right-1 bg-[#8b5e3c] text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                                        {cartCount > 9 ? '9+' : cartCount}
+                                    </span>
+                                )}
                             </Link>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                {/* Mobile Menu */}
-                {isMobileMenuOpen && (
-                    <div className="lg:hidden border-t border-gray-200 bg-white animate-in slide-in-from-top duration-200">
-                        {/* Mobile Search */}
-                        <div className="px-4 py-3 border-b border-gray-200">
-                            <div className="relative">
-                                <input
-                                    type="text"
-                                    placeholder="Search products..."
-                                    className="w-full pl-10 pr-4 py-2.5 text-sm text-gray-700 bg-gray-50 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#8b5e3c] focus:bg-white"
-                                />
-                                <svg
-                                    className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                </svg>
-                            </div>
-                        </div>
+            {/* Combined Category Header - Visible on ALL screens below the main navbar content */}
+            {/* Combined Category Header - Visible on ALL screens below the main navbar content */}
+            <CategoryHeader activeLink={activeLink} setActiveLink={setActiveLink} />
 
-                        {/* User Section - Mobile */}
-                        {isAuthenticated ? (
-                            <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
-                                <div className="flex items-center gap-3 mb-3">
-                                    <div className="w-12 h-12 bg-[#8b5e3c] rounded-full flex items-center justify-center text-white font-bold">
-                                        {user?.name?.charAt(0).toUpperCase() || 'U'}
-                                    </div>
-                                    <div>
-                                        <p className="font-semibold text-gray-900">{user?.name}</p>
-                                        <p className="text-sm text-gray-600">{user?.email}</p>
-                                    </div>
-                                </div>
-                                <div className="grid grid-cols-2 gap-2">
-                                    <Link
-                                        to="/profile"
-                                        onClick={() => setIsMobileMenuOpen(false)}
-                                        className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 text-center"
-                                    >
-                                        Profile
-                                    </Link>
-                                    <button
-                                        onClick={handleLogout}
-                                        className="px-3 py-2 bg-white border border-red-200 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50"
-                                    >
-                                        Logout
-                                    </button>
-                                </div>
-                            </div>
-                        ) : (
-                            <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
-                                <div className="grid grid-cols-2 gap-2">
-                                    <Link
-                                        to="/login"
-                                        onClick={() => setIsMobileMenuOpen(false)}
-                                        className="px-4 py-2 bg-[#8b5e3c] text-white rounded-lg text-sm font-medium hover:bg-[#70482d] text-center"
-                                    >
-                                        Login
-                                    </Link>
-                                    <Link
-                                        to="/signup"
-                                        onClick={() => setIsMobileMenuOpen(false)}
-                                        className="px-4 py-2 border-2 border-[#8b5e3c] text-[#8b5e3c] rounded-lg text-sm font-medium hover:bg-[#8b5e3c] hover:text-white text-center"
-                                    >
-                                        Sign Up
-                                    </Link>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Mobile Navigation Links */}
-                        <div className="px-3 sm:px-4 py-2 max-h-[60vh] overflow-y-auto">
-                            {navLinks.map((link) => (
-                                <Link
-                                    key={link.name}
-                                    to={link.to}
-                                    onClick={() => {
-                                        setActiveLink(link.name)
-                                        setIsMobileMenuOpen(false)
-                                    }}
-                                    className={`block py-3 px-4 text-sm font-semibold tracking-wide uppercase transition-all duration-200 border-b border-gray-100 last:border-b-0 touch-manipulation ${activeLink === link.name
-                                        ? 'text-[#8b5e3c] bg-[#8b5e3c]/10 rounded-lg'
-                                        : 'text-gray-900 hover:text-[#8b5e3c] hover:bg-gray-50 active:bg-gray-100'
-                                        }`}
-                                >
-                                    {link.name}
-                                </Link>
-                            ))}
+            {/* Mobile Menu Overlay */}
+            {/* Mobile Menu */}
+            {isMobileMenuOpen && (
+                <div className="lg:hidden border-t border-gray-200 bg-white animate-in slide-in-from-top duration-200">
+                    {/* Mobile Search */}
+                    <div className="px-4 py-3 border-b border-gray-200">
+                        <div className="relative">
+                            <input
+                                type="text"
+                                placeholder="Search products..."
+                                className="w-full pl-10 pr-4 py-2.5 text-sm text-gray-700 bg-gray-50 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#8b5e3c] focus:bg-white"
+                            />
+                            <svg
+                                className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
                         </div>
                     </div>
-                )}
-            </div>
+
+                    {/* User Section - Mobile */}
+                    {isAuthenticated ? (
+                        <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
+                            <div className="flex items-center gap-3 mb-3">
+                                <div className="w-12 h-12 bg-[#8b5e3c] rounded-full flex items-center justify-center text-white font-bold">
+                                    {user?.name?.charAt(0).toUpperCase() || 'U'}
+                                </div>
+                                <div>
+                                    <p className="font-semibold text-gray-900">{user?.name}</p>
+                                    <p className="text-sm text-gray-600">{user?.email}</p>
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2">
+                                <Link
+                                    to="/profile"
+                                    onClick={() => setIsMobileMenuOpen(false)}
+                                    className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 text-center"
+                                >
+                                    Profile
+                                </Link>
+                                <button
+                                    onClick={handleLogout}
+                                    className="px-3 py-2 bg-white border border-red-200 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50"
+                                >
+                                    Logout
+                                </button>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
+                            <div className="grid grid-cols-2 gap-2">
+                                <Link
+                                    to="/login"
+                                    onClick={() => setIsMobileMenuOpen(false)}
+                                    className="px-4 py-2 bg-[#8b5e3c] text-white rounded-lg text-sm font-medium hover:bg-[#70482d] text-center"
+                                >
+                                    Login
+                                </Link>
+                                <Link
+                                    to="/signup"
+                                    onClick={() => setIsMobileMenuOpen(false)}
+                                    className="px-4 py-2 border-2 border-[#8b5e3c] text-[#8b5e3c] rounded-lg text-sm font-medium hover:bg-[#8b5e3c] hover:text-white text-center"
+                                >
+                                    Sign Up
+                                </Link>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Mobile Navigation Links */}
+                    <div className="px-3 sm:px-4 py-2 max-h-[60vh] overflow-y-auto">
+                        {navLinks.map((link) => (
+                            <Link
+                                key={link.name}
+                                to={link.to}
+                                onClick={() => {
+                                    setActiveLink(link.name)
+                                    setIsMobileMenuOpen(false)
+                                }}
+                                className={`block py-3 px-4 text-sm font-semibold tracking-wide uppercase transition-all duration-200 border-b border-gray-100 last:border-b-0 touch-manipulation ${activeLink === link.name
+                                    ? 'text-[#8b5e3c] bg-[#8b5e3c]/10 rounded-lg'
+                                    : 'text-gray-900 hover:text-[#8b5e3c] hover:bg-gray-50 active:bg-gray-100'
+                                    }`}
+                            >
+                                {link.name}
+                            </Link>
+                        ))}
+                    </div>
+                </div>
+            )}
         </nav>
     )
 }

@@ -1,17 +1,17 @@
 import { useState, useEffect } from 'react'
-import { useParams, Link, useNavigate } from 'react-router-dom'
+import { useParams, Link, useNavigate, useLocation } from 'react-router-dom'
 import { productsAPI, cartAPI, wishlistAPI } from '../services/api'
 import { useAuth } from '../context/AuthContext'
 
 const ProductDetail = () => {
     const { id } = useParams()
     const navigate = useNavigate()
+    const location = useLocation()
     const { isAuthenticated } = useAuth()
     const [product, setProduct] = useState(null)
     const [loading, setLoading] = useState(true)
     const [selectedImage, setSelectedImage] = useState(0)
-    const [pincode, setPincode] = useState('')
-    const [checkPincode, setCheckPincode] = useState(false)
+
     const [quantity, setQuantity] = useState(1)
     const [isInWishlist, setIsInWishlist] = useState(false)
     const [addingToCart, setAddingToCart] = useState(false)
@@ -50,14 +50,35 @@ const ProductDetail = () => {
 
     const handleAddToCart = async () => {
         if (!isAuthenticated) {
-            navigate('/')
+            navigate('/login', { state: { from: location } })
             return
         }
 
         try {
             setAddingToCart(true)
             await cartAPI.add({ productId: id, quantity })
-            // Show success message or navigate to cart
+            // Trigger cart update event
+            window.dispatchEvent(new Event('cartUpdated'))
+            alert('Product added to cart successfully!')
+            navigate('/cart')
+        } catch (error) {
+            alert(error.response?.data?.message || 'Failed to add to cart')
+        } finally {
+            setAddingToCart(false)
+        }
+    }
+
+    const handleBuyNow = async () => {
+        if (!isAuthenticated) {
+            navigate('/login', { state: { from: location } })
+            return
+        }
+
+        try {
+            setAddingToCart(true)
+            await cartAPI.add({ productId: id, quantity })
+            // Trigger cart update event
+            window.dispatchEvent(new Event('cartUpdated'))
             navigate('/cart')
         } catch (error) {
             alert(error.response?.data?.message || 'Failed to add to cart')
@@ -68,7 +89,7 @@ const ProductDetail = () => {
 
     const handleToggleWishlist = async () => {
         if (!isAuthenticated) {
-            navigate('/')
+            navigate('/login', { state: { from: location } })
             return
         }
 
@@ -107,22 +128,17 @@ const ProductDetail = () => {
     }
 
     // Prepare images (ensure multiple)
-    const images = product.images && product.images.length > 0 
-        ? product.images 
+    const images = product.images && product.images.length > 0
+        ? product.images
         : [product.image];
 
     // Calculate discount
     const originalPrice = product.originalPrice || product.price;
-    const discount = originalPrice > product.price 
+    const discount = originalPrice > product.price
         ? Math.round(((originalPrice - product.price) / originalPrice) * 100)
         : 0;
 
-    const offers = [
-        "Bank Offer 5% Unlimited Cashback on Axis Bank Credit Card",
-        "Bank Offer 10% Off on Bank of Baroda Mastercard debit card first time transaction",
-        "Special Price Get extra 20% off (price inclusive of cashback/coupon)",
-        "Partner Offer Sign up for Casawood Pay Later and get Casawood Gift Card worth up to ₹500"
-    ];
+
 
     return (
         <div className="bg-gray-100 min-h-screen py-4">
@@ -155,7 +171,11 @@ const ProductDetail = () => {
                                         className="max-h-full max-w-full object-contain transition-transform duration-300 group-hover:scale-105"
                                     />
                                     {/* Wishlist Heart */}
-                                    <button className="absolute top-4 right-4 w-9 h-9 rounded-full bg-white/80 shadow border border-gray-200 flex items-center justify-center text-gray-400 hover:text-red-500">
+                                    <button
+                                        onClick={handleToggleWishlist}
+                                        className={`absolute top-4 right-4 w-9 h-9 rounded-full bg-white/80 shadow border border-gray-200 flex items-center justify-center transition-colors ${isInWishlist ? 'text-red-500' : 'text-gray-400 hover:text-red-500'
+                                            }`}
+                                    >
                                         <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
                                             <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
                                         </svg>
@@ -178,13 +198,45 @@ const ProductDetail = () => {
 
                             {/* Action Buttons */}
                             <div className="flex gap-4 mt-6">
-                                <button className="flex-1 py-4 bg-[#a67c52] hover:bg-[#8b5e3c] text-white font-bold text-base uppercase shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 rounded-sm">
-                                    <svg className="w-5 h-5 fill-white" viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z" /></svg>
-                                    Add to Cart
+                                <button
+                                    onClick={handleAddToCart}
+                                    disabled={addingToCart}
+                                    className="flex-1 py-4 bg-[#a67c52] hover:bg-[#8b5e3c] text-white font-bold text-base uppercase shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 rounded-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {addingToCart ? (
+                                        <>
+                                            <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                            </svg>
+                                            Adding...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <svg className="w-5 h-5 fill-white" viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z" /></svg>
+                                            Add to Cart
+                                        </>
+                                    )}
                                 </button>
-                                <button className="flex-1 py-4 bg-[#5c4033] hover:bg-[#3e2b22] text-white font-bold text-base uppercase shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 rounded-sm">
-                                    <svg className="w-5 h-5 fill-white" viewBox="0 0 24 24"><path d="M7 2v11h3v9l7-12h-4l4-8z" /></svg>
-                                    Buy Now
+                                <button
+                                    onClick={handleBuyNow}
+                                    disabled={addingToCart}
+                                    className="flex-1 py-4 bg-[#5c4033] hover:bg-[#3e2b22] text-white font-bold text-base uppercase shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 rounded-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {addingToCart ? (
+                                        <>
+                                            <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                            </svg>
+                                            Processing...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <svg className="w-5 h-5 fill-white" viewBox="0 0 24 24"><path d="M7 2v11h3v9l7-12h-4l4-8z" /></svg>
+                                            Buy Now
+                                        </>
+                                    )}
                                 </button>
                             </div>
                         </div>
@@ -220,6 +272,26 @@ const ProductDetail = () => {
                             )}
                         </div>
 
+                        {/* Color Options */}
+                        {(product.color || (product.colorOptions && product.colorOptions.length > 0)) && (
+                            <div className="mb-4">
+                                {product.color && (
+                                    <div className="text-sm text-gray-600 mb-1">
+                                        <span className="font-medium">Colour:</span> {product.color}
+                                    </div>
+                                )}
+                                {product.colorOptions && product.colorOptions.length > 0 && (
+                                    <div className="flex flex-wrap gap-2 mt-1">
+                                        {product.colorOptions.map((color, idx) => (
+                                            <div key={idx} className="px-3 py-1 border border-gray-300 rounded-sm text-xs font-medium text-gray-700 hover:border-[#8b5e3c] hover:text-[#8b5e3c] cursor-pointer transition-colors">
+                                                {color}
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
                         {/* Price */}
                         <div className="flex items-end gap-3 mb-4">
                             <span className="text-3xl font-bold text-gray-900">₹{product.price.toLocaleString()}</span>
@@ -227,49 +299,9 @@ const ProductDetail = () => {
                             <span className="text-[#8b5e3c] text-base font-bold">{discount}% off</span>
                         </div>
 
-                        {/* Offers */}
-                        <div className="mb-6">
-                            <h3 className="text-sm font-semibold text-gray-900 mb-2">Available offers</h3>
-                            <div className="space-y-2">
-                                {offers.map((offer, i) => (
-                                    <div key={i} className="flex items-start gap-2 text-sm text-gray-700">
-                                        <img src="https://rukminim1.flixcart.com/www/36/36/promos/06/09/2016/c22c9fc4-0555-4460-8401-bf5c28d7ba29.png?q=90" className="w-[18px] h-[18px] mt-0.5 opacity-0" alt="" />
-                                        <span><span className="font-medium">{offer.split(' ')[0]} {offer.split(' ')[1]}</span> {offer.substring(offer.indexOf(' ') + 1 + offer.split(' ')[1].length)} <span className="text-[#8b5e3c] cursor-pointer font-medium ml-1">T&C</span></span>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
 
-                        {/* Delivery */}
-                        <div className="flex flex-col sm:flex-row gap-2 sm:gap-8 mb-6 border-b border-gray-100 pb-6">
-                            <div className="w-32 text-gray-500 text-sm font-medium pt-2">Delivery</div>
-                            <div className="flex-1">
-                                <div className="flex items-center border-b-2 border-[#8b5e3c] w-full sm:w-64 pb-1 mb-2">
-                                    <div className="text-gray-500 text-sm mr-2">
-                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                                    </div>
-                                    <input
-                                        type="text"
-                                        placeholder="Enter Delivery Pincode"
-                                        className="outline-none text-sm font-medium text-gray-800 flex-1 placeholder:font-normal"
-                                        maxLength={6}
-                                        value={pincode}
-                                        onChange={(e) => setPincode(e.target.value)}
-                                    />
-                                    <button
-                                        onClick={() => setCheckPincode(true)}
-                                        className="text-[#8b5e3c] text-sm font-bold cursor-pointer"
-                                    >
-                                        Check
-                                    </button>
-                                </div>
-                                {checkPincode && (
-                                    <div className="text-sm font-medium">
-                                        Delivery by <span className="font-bold">11 PM, Tomorrow</span> | <span className="text-[#8b5e3c] font-bold">Free</span> <span className="line-through text-gray-500 text-xs">₹40</span>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
+
+
 
                         {/* Highlights */}
                         <div className="flex flex-col sm:flex-row gap-2 sm:gap-8 mb-6 border-b border-gray-100 pb-6">
@@ -284,18 +316,45 @@ const ProductDetail = () => {
                             </div>
                         </div>
 
-                        {/* Seller */}
+                        {/* Product Policies (Seller/Shipping) */}
                         <div className="flex flex-col sm:flex-row gap-2 sm:gap-8 mb-6 border-b border-gray-100 pb-6">
-                            <div className="w-32 text-gray-500 text-sm font-medium">Seller</div>
+                            <div className="w-32 text-gray-500 text-sm font-medium">Product Policies</div>
                             <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-2">
-                                    <span className="text-[#8b5e3c] font-medium text-sm">CASAWOOD</span>
-                                    <span className="bg-[#8b5e3c] text-white text-[10px] px-1.5 py-0.5 rounded-sm">4.2 ★</span>
+                                <div className="space-y-3">
+                                    {product.policies?.shipping && (
+                                        <div className="flex gap-2">
+                                            <span className="text-lg">🚚</span>
+                                            <div>
+                                                <span className="font-medium text-sm text-gray-900">Shipping:</span>
+                                                <p className="text-sm text-gray-700">{product.policies.shipping}</p>
+                                            </div>
+                                        </div>
+                                    )}
+                                    {product.policies?.warranty && (
+                                        <div className="flex gap-2">
+                                            <span className="text-lg">🛡️</span>
+                                            <div>
+                                                <span className="font-medium text-sm text-gray-900">Warranty:</span>
+                                                <p className="text-sm text-gray-700">{product.policies.warranty}</p>
+                                            </div>
+                                        </div>
+                                    )}
+                                    {product.policies?.cancellations && (
+                                        <div className="flex gap-2">
+                                            <span className="text-lg">❌</span>
+                                            <div>
+                                                <span className="font-medium text-sm text-gray-900">Cancellations:</span>
+                                                <p className="text-sm text-gray-700">{product.policies.cancellations}</p>
+                                            </div>
+                                        </div>
+                                    )}
+                                    {(!product.policies || Object.keys(product.policies).length === 0) && (
+                                        <ul className="list-disc pl-4 space-y-1">
+                                            <li className="text-sm text-gray-800">7 Days Replacement Policy</li>
+                                            <li className="text-sm text-gray-800">GST invoice available</li>
+                                        </ul>
+                                    )}
                                 </div>
-                                <ul className="list-disc pl-4 space-y-1">
-                                    <li className="text-sm text-gray-800">7 Days Replacement Policy</li>
-                                    <li className="text-sm text-gray-800">GST invoice available</li>
-                                </ul>
                             </div>
                         </div>
 
@@ -322,44 +381,104 @@ const ProductDetail = () => {
                                     <div className="border border-gray-200 rounded-sm">
                                         <div className="grid grid-cols-3 border-b border-gray-200 last:border-b-0">
                                             <div className="p-3 text-sm text-gray-500 col-span-1">Sales Package</div>
-                                            <div className="p-3 text-sm text-gray-800 col-span-2">1 {product.category.slice(0, -1)}</div>
+                                            <div className="p-3 text-sm text-gray-800 col-span-2">1 {product.category?.slice(0, -1) || 'Unit'}</div>
                                         </div>
                                         <div className="grid grid-cols-3 border-b border-gray-200 last:border-b-0">
                                             <div className="p-3 text-sm text-gray-500 col-span-1">Model Number</div>
                                             <div className="p-3 text-sm text-gray-800 col-span-2">CW-{product.id}-2026</div>
                                         </div>
-                                        <div className="grid grid-cols-3 border-b border-gray-200 last:border-b-0">
-                                            <div className="p-3 text-sm text-gray-500 col-span-1">Secondary Material</div>
-                                            <div className="p-3 text-sm text-gray-800 col-span-2">Solid Wood</div>
-                                        </div>
-                                        <div className="grid grid-cols-3 border-b border-gray-200 last:border-b-0">
-                                            <div className="p-3 text-sm text-gray-500 col-span-1">Configuration</div>
-                                            <div className="p-3 text-sm text-gray-800 col-span-2">Standard</div>
-                                        </div>
+
+                                        {/* Dynamic Specifications */}
+                                        {product.specifications?.map((spec, index) => (
+                                            <div key={index} className="grid grid-cols-3 border-b border-gray-200 last:border-b-0">
+                                                <div className="p-3 text-sm text-gray-500 col-span-1 capitalize">{spec.key}</div>
+                                                <div className="p-3 text-sm text-gray-800 col-span-2">{spec.value}</div>
+                                            </div>
+                                        ))}
+
+                                        {/* Fallback for old schema fields if no specifications exist */}
+                                        {(!product.specifications || product.specifications.length === 0) && (
+                                            <>
+                                                {product.material && (
+                                                    <div className="grid grid-cols-3 border-b border-gray-200 last:border-b-0">
+                                                        <div className="p-3 text-sm text-gray-500 col-span-1">Material</div>
+                                                        <div className="p-3 text-sm text-gray-800 col-span-2">{product.material}</div>
+                                                    </div>
+                                                )}
+                                                {product.color && (
+                                                    <div className="grid grid-cols-3 border-b border-gray-200 last:border-b-0">
+                                                        <div className="p-3 text-sm text-gray-500 col-span-1">Color</div>
+                                                        <div className="p-3 text-sm text-gray-800 col-span-2">{product.color}</div>
+                                                    </div>
+                                                )}
+                                                {product.deliveryCondition && (
+                                                    <div className="grid grid-cols-3 border-b border-gray-200 last:border-b-0">
+                                                        <div className="p-3 text-sm text-gray-500 col-span-1">Delivery Condition</div>
+                                                        <div className="p-3 text-sm text-gray-800 col-span-2">{product.deliveryCondition}</div>
+                                                    </div>
+                                                )}
+                                            </>
+                                        )}
                                     </div>
                                 </div>
 
-                                <div>
-                                    <div className="text-sm font-medium text-gray-800 mb-3 uppercase">Dimensions</div>
-                                    <div className="border border-gray-200 rounded-sm">
-                                        <div className="grid grid-cols-3 border-b border-gray-200 last:border-b-0">
-                                            <div className="p-3 text-sm text-gray-500 col-span-1">Width</div>
-                                            <div className="p-3 text-sm text-gray-800 col-span-2">180 cm</div>
-                                        </div>
-                                        <div className="grid grid-cols-3 border-b border-gray-200 last:border-b-0">
-                                            <div className="p-3 text-sm text-gray-500 col-span-1">Height</div>
-                                            <div className="p-3 text-sm text-gray-800 col-span-2">90 cm</div>
-                                        </div>
-                                        <div className="grid grid-cols-3 border-b border-gray-200 last:border-b-0">
-                                            <div className="p-3 text-sm text-gray-500 col-span-1">Depth</div>
-                                            <div className="p-3 text-sm text-gray-800 col-span-2">200 cm</div>
-                                        </div>
-                                        <div className="grid grid-cols-3 border-b border-gray-200 last:border-b-0">
-                                            <div className="p-3 text-sm text-gray-500 col-span-1">Weight</div>
-                                            <div className="p-3 text-sm text-gray-800 col-span-2">45 kg</div>
+                                {product.dimensionDetails && product.dimensionDetails.length > 0 ? (
+                                    <div className="mt-4">
+                                        <div className="text-sm font-medium text-gray-800 mb-3 uppercase">Product Dimensions</div>
+                                        <div className="border border-gray-200 rounded-sm">
+                                            {product.dimensionDetails.map((detail, idx) => (
+                                                <div key={idx} className="border-b border-gray-200 last:border-b-0">
+                                                    {detail.title && (
+                                                        <div className="bg-gray-50 px-3 py-2 text-xs font-bold text-gray-500 uppercase tracking-wide border-b border-gray-100">
+                                                            {detail.title}
+                                                        </div>
+                                                    )}
+                                                    {detail.items.map((item, itemIdx) => (
+                                                        <div key={itemIdx} className="grid grid-cols-3 border-b border-gray-100 last:border-b-0">
+                                                            <div className="p-3 text-sm text-gray-500 col-span-1">{item.label}</div>
+                                                            <div className="p-3 text-sm text-gray-800 col-span-2">{item.value}</div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            ))}
                                         </div>
                                     </div>
-                                </div>
+                                ) : (
+                                    product.dimensions && (product.dimensions.length || product.dimensions.width || typeof product.dimensions === 'string') && (
+                                        <div>
+                                            <div className="text-sm font-medium text-gray-800 mb-3 uppercase">Dimensions</div>
+                                            <div className="border border-gray-200 rounded-sm">
+                                                {typeof product.dimensions === 'string' ? (
+                                                    <div className="grid grid-cols-3 border-b border-gray-200 last:border-b-0">
+                                                        <div className="p-3 text-sm text-gray-500 col-span-1">Dimensions</div>
+                                                        <div className="p-3 text-sm text-gray-800 col-span-2">{product.dimensions}</div>
+                                                    </div>
+                                                ) : (
+                                                    <>
+                                                        {product.dimensions.length && (
+                                                            <div className="grid grid-cols-3 border-b border-gray-200 last:border-b-0">
+                                                                <div className="p-3 text-sm text-gray-500 col-span-1">Length</div>
+                                                                <div className="p-3 text-sm text-gray-800 col-span-2">{product.dimensions.length} {product.dimensions.unit || 'cm'}</div>
+                                                            </div>
+                                                        )}
+                                                        {product.dimensions.width && (
+                                                            <div className="grid grid-cols-3 border-b border-gray-200 last:border-b-0">
+                                                                <div className="p-3 text-sm text-gray-500 col-span-1">Width</div>
+                                                                <div className="p-3 text-sm text-gray-800 col-span-2">{product.dimensions.width} {product.dimensions.unit || 'cm'}</div>
+                                                            </div>
+                                                        )}
+                                                        {product.dimensions.height && (
+                                                            <div className="grid grid-cols-3 border-b border-gray-200 last:border-b-0">
+                                                                <div className="p-3 text-sm text-gray-500 col-span-1">Height</div>
+                                                                <div className="p-3 text-sm text-gray-800 col-span-2">{product.dimensions.height} {product.dimensions.unit || 'cm'}</div>
+                                                            </div>
+                                                        )}
+                                                    </>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )
+                                )}
                             </div>
                         </div>
 

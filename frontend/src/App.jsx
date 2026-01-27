@@ -1,5 +1,5 @@
 import { Suspense, lazy } from 'react'
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
@@ -24,29 +24,38 @@ const PageLoader = () => (
   </div>
 )
 
+const AppContent = () => {
+  const location = useLocation() // Now this hook works because it's inside Router
+  const isAuthPage = ['/login', '/signup'].includes(location.pathname)
+
+  return (
+    <div className={`min-h-screen bg-gray-50 flex flex-col ${!isAuthPage ? 'pb-16 lg:pb-0' : ''}`}>
+      <ScrollToTop />
+      {!isAuthPage && <Navbar />}
+      <Suspense fallback={<PageLoader />}>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/products" element={<ProductList />} />
+          <Route path="/product/:id" element={<ProductDetail />} />
+          <Route path="/cart" element={<Cart />} />
+          <Route path="/address" element={<Address />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/wishlist" element={<Wishlist />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+        </Routes>
+      </Suspense>
+      {!isAuthPage && <Footer />}
+      {!isAuthPage && <MobileBottomNav />}
+    </div>
+  )
+}
+
 function App() {
   return (
     <AuthProvider>
       <Router>
-        <div className="min-h-screen bg-gray-50 flex flex-col pb-16 lg:pb-0">
-          <ScrollToTop />
-          <Navbar />
-          <Suspense fallback={<PageLoader />}>
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/products" element={<ProductList />} />
-              <Route path="/product/:id" element={<ProductDetail />} />
-              <Route path="/cart" element={<Cart />} />
-              <Route path="/address" element={<Address />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/wishlist" element={<Wishlist />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/signup" element={<Signup />} />
-            </Routes>
-          </Suspense>
-          <Footer />
-          <MobileBottomNav />
-        </div>
+        <AppContent />
       </Router>
     </AuthProvider>
   )

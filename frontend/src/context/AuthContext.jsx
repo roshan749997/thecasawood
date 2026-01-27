@@ -71,12 +71,30 @@ export const AuthProvider = ({ children }) => {
     setIsAuthenticated(false);
   };
 
+  const googleLogin = async (token) => {
+    try {
+      const response = await authAPI.googleLogin({ token });
+      if (response.data.success) {
+        setToken(response.data.token);
+        setUser(response.data.user);
+        setIsAuthenticated(true);
+        return { success: true, data: response.data };
+      }
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Google Login failed'
+      };
+    }
+  };
+
   const value = {
     user,
     loading,
     isAuthenticated,
     login,
     register,
+    googleLogin,
     logout
   };
 

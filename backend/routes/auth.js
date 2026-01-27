@@ -144,7 +144,7 @@ router.post('/login', [
 router.get('/me', protect, async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
-    
+
     res.json({
       success: true,
       user: {
@@ -163,6 +163,76 @@ router.get('/me', protect, async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Server error'
+    });
+  }
+});
+
+// @route   POST /api/auth/google
+// @desc    Login/Register with Google
+// @access  Public
+router.post('/google', async (req, res) => {
+  try {
+    const { token } = req.body;
+
+    // Fetch user info from Google
+    const response = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    if (!response.ok) {
+      return res.status(401).json({ success: false, message: 'Invalid Google Token' });
+    }
+
+    const data = await response.json();
+    const { email, name, sub: googleId, picture } = data;
+
+    // Check if user exists
+    let user = await User.findOne({ email });
+
+    if (!user) {
+      // Create new user
+      // Generate random strong password as it's required by schema
+      const randomPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8) + 'A1!';
+
+      user = await User.create({
+        name,
+        email,
+        password: randomPassword,
+        googleId,
+        avatar: picture,
+        isActive: true
+      });
+    } else {
+      // Optional: Update googleId if not present
+      if (!user.googleId) {
+        user.googleId = googleId;
+        await user.save({ validateBeforeSave: false });
+      }
+    }
+
+    // Generate token
+    const authToken = generateToken(user._id);
+
+    res.json({
+      success: true,
+      token: authToken,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        avatar: user.getAvatarUrl(),
+        memberSince: user.memberSince,
+        loyaltyTier: user.loyaltyTier,
+        accountBalance: user.accountBalance
+      }
+    });
+
+  } catch (error) {
+    console.error('Google Auth error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error during Google login'
     });
   }
 });

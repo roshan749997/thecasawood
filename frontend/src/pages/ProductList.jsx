@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { productsAPI } from '../services/api'
 
 const ProductList = () => {
@@ -11,7 +11,20 @@ const ProductList = () => {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
     const [page, setPage] = useState(1)
+
     const [hasMore, setHasMore] = useState(true)
+    const location = useLocation()
+
+    // Sync category with URL
+    useEffect(() => {
+        const searchParams = new URLSearchParams(location.search)
+        const category = searchParams.get('category')
+        if (category) {
+            setSelectedCategory(category)
+        } else {
+            setSelectedCategory('All')
+        }
+    }, [location.search])
 
     // Fetch products from API
     useEffect(() => {
@@ -123,28 +136,7 @@ const ProductList = () => {
 
                                 <h3 className="hidden lg:block text-lg font-semibold mb-6">Filters</h3>
 
-                                <div className="mb-8">
-                                    <h4 className="text-sm font-medium text-gray-900 mb-4 uppercase tracking-wider">Categories</h4>
-                                    <div className="space-y-3">
-                                        {['All', 'Beds', 'Sofas', 'Dining', 'Tables'].map((category) => (
-                                            <label key={category} className="flex items-center space-x-3 cursor-pointer group">
-                                                <input
-                                                    type="radio"
-                                                    name="category"
-                                                    checked={selectedCategory === category}
-                                                    onChange={() => {
-                                                        setSelectedCategory(category)
-                                                        setIsFilterOpen(false)
-                                                    }}
-                                                    className="form-radio h-4 w-4 text-[#8b5e3c] border-gray-300 focus:ring-[#8b5e3c]"
-                                                />
-                                                <span className={`text-sm ${selectedCategory === category ? 'text-gray-900 font-medium' : 'text-gray-500 group-hover:text-gray-700'}`}>
-                                                    {category}
-                                                </span>
-                                            </label>
-                                        ))}
-                                    </div>
-                                </div>
+
 
                                 <div>
                                     <h4 className="text-sm font-medium text-gray-900 mb-4 uppercase tracking-wider">Price Range</h4>

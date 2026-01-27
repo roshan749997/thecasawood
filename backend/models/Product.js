@@ -22,7 +22,7 @@ const productSchema = new mongoose.Schema({
   category: {
     type: String,
     required: [true, 'Product category is required'],
-    enum: ['Beds', 'Sofas', 'Dining', 'Tables', 'Coffee & Center Tables', 'Dining Tables', 'Polyester Fabric Sofas', 'Leatherette Sofas', 'Chairs'],
+    enum: ['Beds', 'Sofas', 'Dining', 'Tables', 'Coffee & Center Tables', 'Dining Tables', 'Polyester Fabric Sofas', 'Leatherette Sofas', 'Chairs', 'Lounge chair'],
     index: true
   },
   image: {
@@ -73,6 +73,13 @@ const productSchema = new mongoose.Schema({
       default: 'cm'
     }
   },
+  dimensionDetails: [{
+    title: { type: String },
+    items: [{
+      label: { type: String },
+      value: { type: String }
+    }]
+  }],
   weight: {
     type: Number,
     unit: {
@@ -92,6 +99,22 @@ const productSchema = new mongoose.Schema({
   isActive: {
     type: Boolean,
     default: true
+  },
+  // New Fields for Detailed Product Info
+  specifications: [{
+    key: { type: String, required: true },
+    value: { type: String, required: true }
+  }],
+  colorOptions: [{
+    type: String
+  }],
+  deliveryCondition: {
+    type: String
+  },
+  policies: {
+    shipping: { type: String, default: 'Directly from Factory/ Warehouse, Delivered in multiple boxes' },
+    warranty: { type: String, default: '1 year Manufacturing Warranty' },
+    cancellations: { type: String, default: 'Cancellations are allowed free of charge only within first 24 hours of placing the order' }
   }
 }, {
   timestamps: true

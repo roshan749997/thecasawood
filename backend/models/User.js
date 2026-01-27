@@ -15,6 +15,9 @@ const userSchema = new mongoose.Schema({
     trim: true,
     match: [/^\S+@\S+\.\S+$/, 'Please provide a valid email']
   },
+  googleId: {
+    type: String
+  },
   phone: {
     type: String,
     trim: true
@@ -56,7 +59,7 @@ const userSchema = new mongoose.Schema({
 });
 
 // Hash password before saving
-userSchema.pre('save', async function(next) {
+userSchema.pre('save', async function (next) {
   if (!this.isModified('password')) {
     return next();
   }
@@ -65,12 +68,12 @@ userSchema.pre('save', async function(next) {
 });
 
 // Compare password method
-userSchema.methods.comparePassword = async function(candidatePassword) {
+userSchema.methods.comparePassword = async function (candidatePassword) {
   return await bcrypt.compare(candidatePassword, this.password);
 };
 
 // Generate avatar URL
-userSchema.methods.getAvatarUrl = function() {
+userSchema.methods.getAvatarUrl = function () {
   if (this.avatar) {
     return this.avatar;
   }

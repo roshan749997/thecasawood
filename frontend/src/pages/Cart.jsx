@@ -22,11 +22,16 @@ const Cart = () => {
                 setLoading(true)
                 const response = await cartAPI.get()
                 if (response.data.success) {
-                    setCartItems(response.data.data.items || [])
-                    setSavedForLater(response.data.data.savedForLater || [])
+                    // Handle both response formats
+                    const items = response.data.data?.items || response.data.data || []
+                    const saved = response.data.data?.savedForLater || []
+                    setCartItems(items)
+                    setSavedForLater(saved)
                 }
             } catch (error) {
                 console.error('Error fetching cart:', error)
+                setCartItems([])
+                setSavedForLater([])
             } finally {
                 setLoading(false)
             }
@@ -36,14 +41,22 @@ const Cart = () => {
     }, [isAuthenticated])
 
     const updateQuantity = async (itemId, change) => {
+        if (!itemId) {
+            console.error('Invalid item ID')
+            return
+        }
+
         try {
-            const item = cartItems.find(i => i._id === itemId)
+            const item = cartItems.find(i => (i._id || i.id) === itemId)
             if (!item) return
 
             const newQuantity = Math.max(1, item.quantity + change)
             const response = await cartAPI.update(itemId, { quantity: newQuantity })
             if (response.data.success) {
-                setCartItems(response.data.data.items || [])
+                const items = response.data.data?.items || response.data.data || []
+                setCartItems(items)
+                // Trigger cart update event
+                window.dispatchEvent(new Event('cartUpdated'))
             }
         } catch (error) {
             alert(error.response?.data?.message || 'Failed to update quantity')
@@ -51,10 +64,18 @@ const Cart = () => {
     }
 
     const removeItem = async (itemId) => {
+        if (!itemId) {
+            console.error('Invalid item ID')
+            return
+        }
+
         try {
             const response = await cartAPI.remove(itemId)
             if (response.data.success) {
-                setCartItems(response.data.data.items || [])
+                const items = response.data.data?.items || response.data.data || []
+                setCartItems(items)
+                // Trigger cart update event
+                window.dispatchEvent(new Event('cartUpdated'))
             }
         } catch (error) {
             alert(error.response?.data?.message || 'Failed to remove item')
@@ -172,7 +193,7 @@ const Cart = () => {
                                 </div>
 
                                 <div className="divide-y divide-gray-100">
-                                    {cartItems.map((item) => {
+                                    {cartItems.map((item, index) => {
                                         const product = item.product || {}
                                         const productPrice = product.price || item.price
                                         const productOriginalPrice = product.originalPrice || product.price || item.price
@@ -181,7 +202,7 @@ const Cart = () => {
                                         const productCategory = product.category || item.category
 
                                         return (
-                                            <div key={item._id} className="p-4 md:p-6 hover:bg-gray-50 transition-colors">
+                                            <div key={item._id || item.id || `cart-item-${index}`} className="p-4 md:p-6 hover:bg-gray-50 transition-colors">
                                                 <div className="flex gap-4">
                                                     {/* Product Image */}
                                                     <div className="w-24 h-24 md:w-28 md:h-28 flex-shrink-0 bg-gray-100 rounded-sm overflow-hidden border border-gray-200">
@@ -204,7 +225,7 @@ const Cart = () => {
                                                                 </p>
                                                             </div>
                                                             <button
-                                                                onClick={() => removeItem(item._id)}
+                                                                onClick={() => removeItem(item._id || item.id)}
                                                                 className="text-gray-400 hover:text-red-500 transition-colors flex-shrink-0"
                                                                 aria-label="Remove item"
                                                             >
@@ -241,7 +262,7 @@ const Cart = () => {
                                                             {/* Quantity Selector */}
                                                             <div className="flex items-center border border-gray-300 rounded-sm">
                                                                 <button
-                                                                    onClick={() => updateQuantity(item._id, -1)}
+                                                                    onClick={() => updateQuantity(item._id || item.id, -1)}
                                                                     className="px-3 py-1.5 hover:bg-gray-100 transition-colors"
                                                                     disabled={item.quantity <= 1}
                                                                 >
@@ -298,7 +319,7 @@ const Cart = () => {
                                 </div>
 
                                 <div className="divide-y divide-gray-100">
-                                    {savedForLater.map((item) => {
+                                    {savedForLater.map((item, index) => {
                                         const product = item.product || {}
                                         const productName = product.name || item.name
                                         const productImage = product.image || item.image
@@ -306,7 +327,7 @@ const Cart = () => {
                                         const productOriginalPrice = product.originalPrice || product.price || item.price
 
                                         return (
-                                            <div key={item._id} className="p-4 md:p-6 hover:bg-gray-50 transition-colors">
+                                            <div key={item._id || item.id || `saved-item-${index}`} className="p-4 md:p-6 hover:bg-gray-50 transition-colors">
                                                 <div className="flex gap-4">
                                                     <div className="w-24 h-24 flex-shrink-0 bg-gray-100 rounded-sm overflow-hidden border border-gray-200">
                                                         <img src={productImage} alt={productName} className="w-full h-full object-cover" />

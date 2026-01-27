@@ -1,8 +1,47 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { cartAPI } from '../services/api';
 
 const MobileBottomNav = () => {
     const location = useLocation();
+    const { isAuthenticated } = useAuth();
+    const [cartCount, setCartCount] = useState(0);
+
+    // Fetch cart count
+    useEffect(() => {
+        const fetchCartCount = async () => {
+            if (!isAuthenticated) {
+                setCartCount(0);
+                return;
+            }
+
+            try {
+                const response = await cartAPI.get();
+                if (response.data.success) {
+                    const items = response.data.data?.items || response.data.data || [];
+                    const totalCount = items.reduce((sum, item) => sum + (item.quantity || 1), 0);
+                    setCartCount(totalCount);
+                }
+            } catch (error) {
+                console.error('Error fetching cart count:', error);
+                setCartCount(0);
+            }
+        };
+
+        fetchCartCount();
+
+        // Listen for cart update events
+        window.addEventListener('cartUpdated', fetchCartCount);
+
+        // Refresh cart count every 10 seconds
+        const interval = setInterval(fetchCartCount, 10000);
+
+        return () => {
+            window.removeEventListener('cartUpdated', fetchCartCount);
+            clearInterval(interval);
+        };
+    }, [isAuthenticated]);
 
     const isActive = (path) => {
         if (path === '/' && location.pathname === '/') return true;
@@ -41,16 +80,23 @@ const MobileBottomNav = () => {
         },
         {
             name: 'Cart',
-            path: '#cart', // Placeholder
+            path: '/cart',
             icon: (active) => (
-                <svg className={`w-6 h-6 ${active ? 'fill-current' : 'stroke-current fill-none'}`} viewBox="0 0 24 24" strokeWidth="1.5">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                </svg>
+                <div className="relative">
+                    <svg className={`w-6 h-6 ${active ? 'fill-current' : 'stroke-current fill-none'}`} viewBox="0 0 24 24" strokeWidth="1.5">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                    </svg>
+                    {cartCount > 0 && (
+                        <span className="absolute -top-2 -right-2 bg-[#8b5e3c] text-white text-[9px] font-bold rounded-full h-4 w-4 flex items-center justify-center">
+                            {cartCount > 9 ? '9+' : cartCount}
+                        </span>
+                    )}
+                </div>
             )
         },
         {
             name: 'Account',
-            path: '#account', // Placeholder
+            path: '/profile',
             icon: (active) => (
                 <svg className={`w-6 h-6 ${active ? 'fill-current' : 'stroke-current fill-none'}`} viewBox="0 0 24 24" strokeWidth="1.5">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />

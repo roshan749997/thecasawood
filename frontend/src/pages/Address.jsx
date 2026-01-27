@@ -119,7 +119,7 @@ const Address = () => {
 
     const handleContinue = () => {
         if (selectedAddress) {
-            navigate('/payment')
+            navigate('/payment', { state: { addressId: selectedAddress } })
         }
     }
 

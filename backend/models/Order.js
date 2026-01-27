@@ -37,7 +37,6 @@ const orderSchema = new mongoose.Schema({
   orderNumber: {
     type: String,
     unique: true,
-    required: true,
     index: true
   },
   items: [orderItemSchema],
@@ -68,7 +67,7 @@ const orderSchema = new mongoose.Schema({
   },
   paymentMethod: {
     type: String,
-    enum: ['COD', 'Card', 'UPI', 'NetBanking', 'Wallet'],
+    enum: ['COD', 'Card', 'UPI', 'NetBanking', 'Wallet', 'Online'],
     default: 'COD'
   },
   paymentStatus: {
@@ -92,6 +91,12 @@ const orderSchema = new mongoose.Schema({
   },
   notes: {
     type: String
+  },
+  paymentInfo: {
+    razorpayOrderId: String,
+    razorpayPaymentId: String,
+    razorpaySignature: String,
+    status: String
   }
 }, {
   timestamps: true
@@ -102,7 +107,7 @@ orderSchema.index({ user: 1, createdAt: -1 });
 orderSchema.index({ orderStatus: 1 });
 
 // Generate order number
-orderSchema.pre('save', async function(next) {
+orderSchema.pre('save', async function (next) {
   if (!this.orderNumber) {
     const count = await mongoose.model('Order').countDocuments();
     const date = new Date();

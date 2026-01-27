@@ -30,8 +30,14 @@ const PopularCategories = () => {
         {
             id: 5,
             title: 'Polyester Fabric Sofas',
-            image: 'https://res.cloudinary.com/dvkxgrcbv/image/upload/v1769077701/Polyster_sofa_q6wpar.jpg',
+            image: 'https://res.cloudinary.com/dvkxgrcbv/image/upload/v1769148465/1b0809f6-f4d9-411d-b5dd-a03f8872064f.png',
             link: 'Sofas'
+        },
+        {
+            id: 6,
+            title: 'Lounge chair',
+            image: 'https://res.cloudinary.com/dvkxgrcbv/image/upload/v1769499030/f237b728-e210-43c5-beae-f09077038e5c.png',
+            link: 'Chairs'
         },
     ];
 

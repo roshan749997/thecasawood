@@ -3,7 +3,14 @@ import { Link, useLocation } from 'react-router-dom'
 import { productsAPI } from '../services/api'
 
 const ProductList = () => {
-    const [selectedCategory, setSelectedCategory] = useState('All')
+    const location = useLocation()
+
+    // Lazy init category from URL to prevent race condition on mount
+    const [selectedCategory, setSelectedCategory] = useState(() => {
+        const searchParams = new URLSearchParams(location.search)
+        return searchParams.get('category') || 'All'
+    })
+
     const [priceRange, setPriceRange] = useState([0, 100000])
     const [sortBy, setSortBy] = useState('popular')
     const [isFilterOpen, setIsFilterOpen] = useState(false)
@@ -11,11 +18,9 @@ const ProductList = () => {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
     const [page, setPage] = useState(1)
-
     const [hasMore, setHasMore] = useState(true)
-    const location = useLocation()
 
-    // Sync category with URL
+    // Sync category with URL updates
     useEffect(() => {
         const searchParams = new URLSearchParams(location.search)
         const category = searchParams.get('category')
@@ -24,10 +29,12 @@ const ProductList = () => {
         } else {
             setSelectedCategory('All')
         }
+        setPage(1) // Reset page on category change
     }, [location.search])
 
     // Fetch products from API
     useEffect(() => {
+        let ignore = false
         const fetchProducts = async () => {
             try {
                 setLoading(true)
@@ -45,7 +52,6 @@ const ProductList = () => {
                     params.maxPrice = priceRange[1]
                 }
 
-                // Map sortBy to API format
                 if (sortBy === 'popular') {
                     params.sortBy = 'popular'
                 } else if (sortBy === 'newest') {
@@ -60,7 +66,7 @@ const ProductList = () => {
                 }
 
                 const response = await productsAPI.getAll(params)
-                if (response.data.success) {
+                if (!ignore && response.data.success) {
                     if (page === 1) {
                         setProducts(response.data.data)
                     } else {
@@ -69,14 +75,19 @@ const ProductList = () => {
                     setHasMore(response.data.pagination.page < response.data.pagination.pages)
                 }
             } catch (err) {
-                setError(err.response?.data?.message || 'Failed to load products')
-                console.error('Error fetching products:', err)
+                if (!ignore) {
+                    setError(err.response?.data?.message || 'Failed to load products')
+                    console.error('Error fetching products:', err)
+                }
             } finally {
-                setLoading(false)
+                if (!ignore) {
+                    setLoading(false)
+                }
             }
         }
 
         fetchProducts()
+        return () => { ignore = true }
     }, [selectedCategory, sortBy, priceRange, page])
 
     return (

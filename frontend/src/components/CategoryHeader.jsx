@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 
 export const navLinks = [
     { name: 'Beds', to: '/products?category=Beds' },
-    { name: 'Coffee & Center Tables', to: '/products?category=Coffee & Center Tables' },
+    { name: 'Coffee & Center Tables', to: '/products?category=Coffee %26 Center Tables' },
     { name: 'Dining Tables', to: '/products?category=Dining Tables' },
     { name: 'Polyester Fabric Sofas', to: '/products?category=Polyester Fabric Sofas' },
     { name: 'Leatherette Sofas', to: '/products?category=Leatherette Sofas' },

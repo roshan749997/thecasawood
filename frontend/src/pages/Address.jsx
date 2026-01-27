@@ -1,38 +1,40 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { addressesAPI } from '../services/api'
+import { useAuth } from '../context/AuthContext'
 
 const Address = () => {
     const navigate = useNavigate()
+    const { isAuthenticated } = useAuth()
     const [selectedAddress, setSelectedAddress] = useState(null)
     const [showAddressForm, setShowAddressForm] = useState(false)
     const [editingAddress, setEditingAddress] = useState(null)
+    const [addresses, setAddresses] = useState([])
+    const [loading, setLoading] = useState(true)
 
-    const [addresses, setAddresses] = useState([
-        {
-            id: 1,
-            name: 'Roshan Kumar',
-            phone: '9876543210',
-            pincode: '400001',
-            address: 'Flat 301, Sunrise Apartments, MG Road',
-            locality: 'Andheri West',
-            city: 'Mumbai',
-            state: 'Maharashtra',
-            type: 'Home',
-            isDefault: true
-        },
-        {
-            id: 2,
-            name: 'Roshan Kumar',
-            phone: '9876543210',
-            pincode: '110001',
-            address: 'Office 5B, Tech Park, Sector 18',
-            locality: 'Cyber City',
-            city: 'Gurugram',
-            state: 'Haryana',
-            type: 'Work',
-            isDefault: false
+    // Fetch addresses from API
+    useEffect(() => {
+        if (!isAuthenticated) {
+            navigate('/')
+            return
         }
-    ])
+
+        const fetchAddresses = async () => {
+            try {
+                setLoading(true)
+                const response = await addressesAPI.getAll()
+                if (response.data.success) {
+                    setAddresses(response.data.data || [])
+                }
+            } catch (error) {
+                console.error('Error fetching addresses:', error)
+            } finally {
+                setLoading(false)
+            }
+        }
+
+        fetchAddresses()
+    }, [isAuthenticated, navigate])
 
     const [formData, setFormData] = useState({
         name: '',
@@ -49,38 +51,70 @@ const Address = () => {
         setFormData({ ...formData, [e.target.name]: e.target.value })
     }
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault()
-        if (editingAddress) {
-            setAddresses(addresses.map(addr =>
-                addr.id === editingAddress.id ? { ...formData, id: addr.id, isDefault: addr.isDefault } : addr
-            ))
-            setEditingAddress(null)
-        } else {
-            setAddresses([...addresses, { ...formData, id: Date.now(), isDefault: false }])
+        try {
+            if (editingAddress) {
+                const response = await addressesAPI.update(editingAddress._id || editingAddress.id, formData)
+                if (response.data.success) {
+                    setAddresses(addresses.map(addr =>
+                        addr._id === editingAddress._id ? response.data.data : addr
+                    ))
+                    setEditingAddress(null)
+                }
+            } else {
+                const response = await addressesAPI.create({
+                    ...formData,
+                    addressLine1: formData.address,
+                    addressLine2: formData.locality
+                })
+                if (response.data.success) {
+                    setAddresses([...addresses, response.data.data])
+                }
+            }
+            setFormData({
+                name: '',
+                phone: '',
+                pincode: '',
+                address: '',
+                locality: '',
+                city: '',
+                state: '',
+                type: 'Home'
+            })
+            setShowAddressForm(false)
+        } catch (error) {
+            alert(error.response?.data?.message || 'Failed to save address')
         }
-        setFormData({
-            name: '',
-            phone: '',
-            pincode: '',
-            address: '',
-            locality: '',
-            city: '',
-            state: '',
-            type: 'Home'
-        })
-        setShowAddressForm(false)
     }
 
     const handleEdit = (address) => {
-        setFormData(address)
+        setFormData({
+            name: address.name,
+            phone: address.phone,
+            pincode: address.pincode,
+            address: address.addressLine1 || address.address,
+            locality: address.addressLine2 || address.locality || '',
+            city: address.city,
+            state: address.state,
+            type: address.type
+        })
         setEditingAddress(address)
         setShowAddressForm(true)
     }
 
-    const handleDelete = (id) => {
-        setAddresses(addresses.filter(addr => addr.id !== id))
-        if (selectedAddress === id) setSelectedAddress(null)
+    const handleDelete = async (id) => {
+        if (!window.confirm('Are you sure you want to delete this address?')) {
+            return
+        }
+
+        try {
+            await addressesAPI.delete(id)
+            setAddresses(addresses.filter(addr => (addr._id || addr.id) !== id))
+            if (selectedAddress === id) setSelectedAddress(null)
+        } catch (error) {
+            alert(error.response?.data?.message || 'Failed to delete address')
+        }
     }
 
     const handleContinue = () => {
@@ -324,76 +358,97 @@ const Address = () => {
                                     </h2>
                                 </div>
 
-                                <div className="divide-y divide-gray-100">
-                                    {addresses.map((address) => (
-                                        <div
-                                            key={address.id}
-                                            className={`p-6 hover:bg-gray-50 transition-colors cursor-pointer ${selectedAddress === address.id ? 'bg-[#8b5e3c]/5 border-l-4 border-[#8b5e3c]' : ''
-                                                }`}
-                                            onClick={() => setSelectedAddress(address.id)}
+                                {loading ? (
+                                    <div className="flex items-center justify-center py-20">
+                                        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#8b5e3c]"></div>
+                                    </div>
+                                ) : addresses.length === 0 ? (
+                                    <div className="text-center py-12">
+                                        <p className="text-gray-500 mb-4">No addresses saved</p>
+                                        <button
+                                            onClick={() => setShowAddressForm(true)}
+                                            className="px-6 py-2 bg-[#8b5e3c] text-white rounded-lg hover:bg-[#70482d]"
                                         >
-                                            <div className="flex gap-4">
-                                                {/* Radio Button */}
-                                                <div className="flex-shrink-0 pt-1">
-                                                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${selectedAddress === address.id ? 'border-[#8b5e3c]' : 'border-gray-300'
-                                                        }`}>
-                                                        {selectedAddress === address.id && (
-                                                            <div className="w-3 h-3 rounded-full bg-[#8b5e3c]"></div>
-                                                        )}
-                                                    </div>
-                                                </div>
+                                            Add Address
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div className="divide-y divide-gray-100">
+                                        {addresses.map((address) => {
+                                            const addressId = address._id || address.id
+                                            return (
+                                                <div
+                                                    key={addressId}
+                                                    className={`p-6 hover:bg-gray-50 transition-colors cursor-pointer ${selectedAddress === addressId ? 'bg-[#8b5e3c]/5 border-l-4 border-[#8b5e3c]' : ''
+                                                        }`}
+                                                    onClick={() => setSelectedAddress(addressId)}
+                                                >
+                                                    <div className="flex gap-4">
+                                                        {/* Radio Button */}
+                                                        <div className="flex-shrink-0 pt-1">
+                                                            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${selectedAddress === addressId ? 'border-[#8b5e3c]' : 'border-gray-300'
+                                                                }`}>
+                                                                {selectedAddress === addressId && (
+                                                                    <div className="w-3 h-3 rounded-full bg-[#8b5e3c]"></div>
+                                                                )}
+                                                            </div>
+                                                        </div>
 
-                                                {/* Address Details */}
-                                                <div className="flex-1">
-                                                    <div className="flex items-start justify-between mb-2">
-                                                        <div className="flex items-center gap-2">
-                                                            <h3 className="text-base font-semibold text-gray-900">{address.name}</h3>
-                                                            <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs font-medium rounded uppercase">
-                                                                {address.type}
-                                                            </span>
-                                                            {address.isDefault && (
-                                                                <span className="px-2 py-0.5 bg-[#8b5e3c] text-white text-xs font-medium rounded">
-                                                                    Default
-                                                                </span>
+                                                        {/* Address Details */}
+                                                        <div className="flex-1">
+                                                            <div className="flex items-start justify-between mb-2">
+                                                                <div className="flex items-center gap-2">
+                                                                    <h3 className="text-base font-semibold text-gray-900">{address.name}</h3>
+                                                                    <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs font-medium rounded uppercase">
+                                                                        {address.type}
+                                                                    </span>
+                                                                    {address.isDefault && (
+                                                                        <span className="px-2 py-0.5 bg-[#8b5e3c] text-white text-xs font-medium rounded">
+                                                                            Default
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+
+                                                            <p className="text-sm text-gray-700 mb-1">{address.addressLine1 || address.address}</p>
+                                                            {address.addressLine2 && (
+                                                                <p className="text-sm text-gray-700 mb-1">{address.addressLine2}</p>
                                                             )}
+                                                            <p className="text-sm text-gray-700 mb-2">
+                                                                {address.city}, {address.state} - {address.pincode}
+                                                            </p>
+                                                            <p className="text-sm text-gray-600 mb-4">
+                                                                Mobile: <span className="font-medium text-gray-900">{address.phone}</span>
+                                                            </p>
+
+                                                            {/* Action Buttons */}
+                                                            <div className="flex gap-4">
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation()
+                                                                        handleEdit(address)
+                                                                    }}
+                                                                    className="text-sm font-medium text-[#8b5e3c] hover:text-[#70482d] transition-colors"
+                                                                >
+                                                                    EDIT
+                                                                </button>
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation()
+                                                                        handleDelete(addressId)
+                                                                    }}
+                                                                    className="text-sm font-medium text-gray-700 hover:text-red-500 transition-colors"
+                                                                >
+                                                                    REMOVE
+                                                                </button>
+                                                            </div>
                                                         </div>
                                                     </div>
-
-                                                    <p className="text-sm text-gray-700 mb-1">{address.address}</p>
-                                                    <p className="text-sm text-gray-700 mb-1">{address.locality}</p>
-                                                    <p className="text-sm text-gray-700 mb-2">
-                                                        {address.city}, {address.state} - {address.pincode}
-                                                    </p>
-                                                    <p className="text-sm text-gray-600 mb-4">
-                                                        Mobile: <span className="font-medium text-gray-900">{address.phone}</span>
-                                                    </p>
-
-                                                    {/* Action Buttons */}
-                                                    <div className="flex gap-4">
-                                                        <button
-                                                            onClick={(e) => {
-                                                                e.stopPropagation()
-                                                                handleEdit(address)
-                                                            }}
-                                                            className="text-sm font-medium text-[#8b5e3c] hover:text-[#70482d] transition-colors"
-                                                        >
-                                                            EDIT
-                                                        </button>
-                                                        <button
-                                                            onClick={(e) => {
-                                                                e.stopPropagation()
-                                                                handleDelete(address.id)
-                                                            }}
-                                                            className="text-sm font-medium text-gray-700 hover:text-red-500 transition-colors"
-                                                        >
-                                                            REMOVE
-                                                        </button>
-                                                    </div>
                                                 </div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
+                                            )
+                                        })}
+                                    </div>
+                                )}
 
                                 {/* Deliver Here Button - Mobile */}
                                 <div className="lg:hidden p-4 border-t border-gray-200">

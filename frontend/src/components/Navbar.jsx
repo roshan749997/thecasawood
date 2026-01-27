@@ -1,9 +1,12 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 
 const Navbar = () => {
+    const { isAuthenticated, user, logout } = useAuth()
     const [activeLink, setActiveLink] = useState('Beds')
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+    const [showUserMenu, setShowUserMenu] = useState(false)
 
     const navLinks = [
         { name: 'Beds', to: '/products' },
@@ -13,12 +16,11 @@ const Navbar = () => {
         { name: 'Leatherette Sofas', to: '/products' },
     ]
 
-    const rightLinks = [
-        { icon: '📍', text: 'FRANCHISE', href: '#franchise' },
-        { icon: '📞', text: '9810707042', href: 'tel:9810707042' },
-        { icon: '🛒', text: 'SUBMIT', href: '#submit' },
-        { icon: '📦', text: 'TRACK YOUR ORDER', href: '#track' },
-    ]
+    const handleLogout = () => {
+        logout()
+        setShowUserMenu(false)
+        setIsMobileMenuOpen(false)
+    }
 
     return (
         <nav className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-50">
@@ -117,12 +119,83 @@ const Navbar = () => {
                                 </svg>
                             </a>
 
-                            {/* Profile Icon */}
-                            <Link to="/profile" className="text-gray-500 hover:text-[#8b5e3c] transition-colors p-1.5">
-                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-                                </svg>
-                            </Link>
+                            {/* Profile Icon or Login Button */}
+                            {isAuthenticated ? (
+                                <div className="relative">
+                                    <button
+                                        onClick={() => setShowUserMenu(!showUserMenu)}
+                                        className="flex items-center gap-2 text-gray-500 hover:text-[#8b5e3c] transition-colors p-1.5"
+                                    >
+                                        <div className="w-8 h-8 bg-[#8b5e3c] rounded-full flex items-center justify-center text-white text-sm font-bold">
+                                            {user?.name?.charAt(0).toUpperCase() || 'U'}
+                                        </div>
+                                    </button>
+
+                                    {/* User Dropdown Menu */}
+                                    {showUserMenu && (
+                                        <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                                            <div className="px-4 py-3 border-b border-gray-200">
+                                                <p className="text-sm font-semibold text-gray-900">{user?.name}</p>
+                                                <p className="text-xs text-gray-600">{user?.email}</p>
+                                            </div>
+                                            <Link
+                                                to="/profile"
+                                                onClick={() => setShowUserMenu(false)}
+                                                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                            >
+                                                <div className="flex items-center gap-2">
+                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                                    </svg>
+                                                    My Profile
+                                                </div>
+                                            </Link>
+                                            <Link
+                                                to="/wishlist"
+                                                onClick={() => setShowUserMenu(false)}
+                                                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                            >
+                                                <div className="flex items-center gap-2">
+                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                                    </svg>
+                                                    My Wishlist
+                                                </div>
+                                            </Link>
+                                            <Link
+                                                to="/cart"
+                                                onClick={() => setShowUserMenu(false)}
+                                                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                            >
+                                                <div className="flex items-center gap-2">
+                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                                                    </svg>
+                                                    My Cart
+                                                </div>
+                                            </Link>
+                                            <button
+                                                onClick={handleLogout}
+                                                className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 border-t border-gray-200 mt-2"
+                                            >
+                                                <div className="flex items-center gap-2">
+                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                                                    </svg>
+                                                    Logout
+                                                </div>
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            ) : (
+                                <Link
+                                    to="/login"
+                                    className="px-4 py-2 bg-[#8b5e3c] text-white rounded-lg hover:bg-[#70482d] transition-colors text-sm font-medium"
+                                >
+                                    Login
+                                </Link>
+                            )}
 
                             {/* Wishlist Icon */}
                             <Link to="/wishlist" className="text-gray-500 hover:text-[#8b5e3c] transition-colors p-1.5">
@@ -163,6 +236,55 @@ const Navbar = () => {
                             </div>
                         </div>
 
+                        {/* User Section - Mobile */}
+                        {isAuthenticated ? (
+                            <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
+                                <div className="flex items-center gap-3 mb-3">
+                                    <div className="w-12 h-12 bg-[#8b5e3c] rounded-full flex items-center justify-center text-white font-bold">
+                                        {user?.name?.charAt(0).toUpperCase() || 'U'}
+                                    </div>
+                                    <div>
+                                        <p className="font-semibold text-gray-900">{user?.name}</p>
+                                        <p className="text-sm text-gray-600">{user?.email}</p>
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <Link
+                                        to="/profile"
+                                        onClick={() => setIsMobileMenuOpen(false)}
+                                        className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 text-center"
+                                    >
+                                        Profile
+                                    </Link>
+                                    <button
+                                        onClick={handleLogout}
+                                        className="px-3 py-2 bg-white border border-red-200 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50"
+                                    >
+                                        Logout
+                                    </button>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
+                                <div className="grid grid-cols-2 gap-2">
+                                    <Link
+                                        to="/login"
+                                        onClick={() => setIsMobileMenuOpen(false)}
+                                        className="px-4 py-2 bg-[#8b5e3c] text-white rounded-lg text-sm font-medium hover:bg-[#70482d] text-center"
+                                    >
+                                        Login
+                                    </Link>
+                                    <Link
+                                        to="/signup"
+                                        onClick={() => setIsMobileMenuOpen(false)}
+                                        className="px-4 py-2 border-2 border-[#8b5e3c] text-[#8b5e3c] rounded-lg text-sm font-medium hover:bg-[#8b5e3c] hover:text-white text-center"
+                                    >
+                                        Sign Up
+                                    </Link>
+                                </div>
+                            </div>
+                        )}
+
                         {/* Mobile Navigation Links */}
                         <div className="px-3 sm:px-4 py-2 max-h-[60vh] overflow-y-auto">
                             {navLinks.map((link) => (
@@ -180,21 +302,6 @@ const Navbar = () => {
                                 >
                                     {link.name}
                                 </Link>
-                            ))}
-                        </div>
-
-                        {/* Mobile Right Links */}
-                        <div className="px-3 sm:px-4 py-3 border-t border-gray-200 space-y-1">
-                            {rightLinks.map((link, index) => (
-                                <a
-                                    key={index}
-                                    href={link.href}
-                                    onClick={() => setIsMobileMenuOpen(false)}
-                                    className="flex items-center space-x-3 py-2.5 px-4 text-sm font-semibold text-gray-700 hover:bg-gray-50 active:bg-gray-100 rounded-lg transition-colors touch-manipulation"
-                                >
-                                    <span className="text-lg">{link.icon}</span>
-                                    <span>{link.text}</span>
-                                </a>
                             ))}
                         </div>
                     </div>

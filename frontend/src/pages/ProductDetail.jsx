@@ -1,15 +1,97 @@
-import { useState } from 'react'
-import { useParams, Link } from 'react-router-dom'
-import { products } from '../data/products'
+import { useState, useEffect } from 'react'
+import { useParams, Link, useNavigate } from 'react-router-dom'
+import { productsAPI, cartAPI, wishlistAPI } from '../services/api'
+import { useAuth } from '../context/AuthContext'
 
 const ProductDetail = () => {
     const { id } = useParams()
+    const navigate = useNavigate()
+    const { isAuthenticated } = useAuth()
+    const [product, setProduct] = useState(null)
+    const [loading, setLoading] = useState(true)
     const [selectedImage, setSelectedImage] = useState(0)
     const [pincode, setPincode] = useState('')
     const [checkPincode, setCheckPincode] = useState(false)
+    const [quantity, setQuantity] = useState(1)
+    const [isInWishlist, setIsInWishlist] = useState(false)
+    const [addingToCart, setAddingToCart] = useState(false)
 
-    // Find product by ID
-    const product = products.find(p => p.id === parseInt(id))
+    // Fetch product from API
+    useEffect(() => {
+        const fetchProduct = async () => {
+            try {
+                setLoading(true)
+                const response = await productsAPI.getById(id)
+                if (response.data.success) {
+                    setProduct(response.data.data)
+                }
+            } catch (error) {
+                console.error('Error fetching product:', error)
+            } finally {
+                setLoading(false)
+            }
+        }
+
+        // Check if product is in wishlist
+        const checkWishlist = async () => {
+            if (isAuthenticated) {
+                try {
+                    const response = await wishlistAPI.check(id)
+                    setIsInWishlist(response.data.isInWishlist)
+                } catch (error) {
+                    console.error('Error checking wishlist:', error)
+                }
+            }
+        }
+
+        fetchProduct()
+        checkWishlist()
+    }, [id, isAuthenticated])
+
+    const handleAddToCart = async () => {
+        if (!isAuthenticated) {
+            navigate('/')
+            return
+        }
+
+        try {
+            setAddingToCart(true)
+            await cartAPI.add({ productId: id, quantity })
+            // Show success message or navigate to cart
+            navigate('/cart')
+        } catch (error) {
+            alert(error.response?.data?.message || 'Failed to add to cart')
+        } finally {
+            setAddingToCart(false)
+        }
+    }
+
+    const handleToggleWishlist = async () => {
+        if (!isAuthenticated) {
+            navigate('/')
+            return
+        }
+
+        try {
+            if (isInWishlist) {
+                await wishlistAPI.remove(id)
+                setIsInWishlist(false)
+            } else {
+                await wishlistAPI.add({ productId: id })
+                setIsInWishlist(true)
+            }
+        } catch (error) {
+            alert(error.response?.data?.message || 'Failed to update wishlist')
+        }
+    }
+
+    if (loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gray-100">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#8b5e3c]"></div>
+            </div>
+        )
+    }
 
     if (!product) {
         return (
@@ -25,16 +107,15 @@ const ProductDetail = () => {
     }
 
     // Prepare images (ensure multiple)
-    const images = product.images ? product.images : [
-        product.image,
-        product.image,
-        product.image,
-        product.image
-    ];
+    const images = product.images && product.images.length > 0 
+        ? product.images 
+        : [product.image];
 
     // Calculate discount
-    const originalPrice = product.originalPrice || Math.round(product.price * 1.4); // Mock original price if missing
-    const discount = Math.round(((originalPrice - product.price) / originalPrice) * 100);
+    const originalPrice = product.originalPrice || product.price;
+    const discount = originalPrice > product.price 
+        ? Math.round(((originalPrice - product.price) / originalPrice) * 100)
+        : 0;
 
     const offers = [
         "Bank Offer 5% Unlimited Cashback on Axis Bank Credit Card",

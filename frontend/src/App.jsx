@@ -1,5 +1,6 @@
 import { Suspense, lazy } from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { AuthProvider } from './context/AuthContext'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import ScrollToTop from './components/ScrollToTop'
@@ -13,6 +14,8 @@ const Cart = lazy(() => import('./pages/Cart'))
 const Address = lazy(() => import('./pages/Address'))
 const Profile = lazy(() => import('./pages/Profile'))
 const Wishlist = lazy(() => import('./pages/Wishlist'))
+const Login = lazy(() => import('./pages/Login'))
+const Signup = lazy(() => import('./pages/Signup'))
 
 // Loading component
 const PageLoader = () => (
@@ -23,25 +26,29 @@ const PageLoader = () => (
 
 function App() {
   return (
-    <Router>
-      <div className="min-h-screen bg-gray-50 flex flex-col pb-16 lg:pb-0">
-        <ScrollToTop />
-        <Navbar />
-        <Suspense fallback={<PageLoader />}>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/products" element={<ProductList />} />
-            <Route path="/product/:id" element={<ProductDetail />} />
-            <Route path="/cart" element={<Cart />} />
-            <Route path="/address" element={<Address />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/wishlist" element={<Wishlist />} />
-          </Routes>
-        </Suspense>
-        <Footer />
-        <MobileBottomNav />
-      </div>
-    </Router>
+    <AuthProvider>
+      <Router>
+        <div className="min-h-screen bg-gray-50 flex flex-col pb-16 lg:pb-0">
+          <ScrollToTop />
+          <Navbar />
+          <Suspense fallback={<PageLoader />}>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/products" element={<ProductList />} />
+              <Route path="/product/:id" element={<ProductDetail />} />
+              <Route path="/cart" element={<Cart />} />
+              <Route path="/address" element={<Address />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/wishlist" element={<Wishlist />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Signup />} />
+            </Routes>
+          </Suspense>
+          <Footer />
+          <MobileBottomNav />
+        </div>
+      </Router>
+    </AuthProvider>
   )
 }
 

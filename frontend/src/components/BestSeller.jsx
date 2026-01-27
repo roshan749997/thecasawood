@@ -1,9 +1,36 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { products } from '../data/products';
+import { productsAPI } from '../services/api';
 
 const BestSeller = () => {
     const scrollRef = useRef(null);
+    const [products, setProducts] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    useEffect(() => {
+        const fetchProducts = async () => {
+            try {
+                setLoading(true);
+                setError(null);
+                const response = await productsAPI.getAll({ tag: 'Best Seller', limit: 20 });
+                if (response.data.success && response.data.data.length > 0) {
+                    setProducts(response.data.data);
+                } else {
+                    // Fallback to showing message if no products
+                    setProducts([]);
+                }
+            } catch (err) {
+                console.error('Error fetching Best Seller products:', err);
+                // Don't set error - just use empty array to prevent page crash
+                setProducts([]);
+                setError(null); // Clear error to prevent error UI from showing
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchProducts();
+    }, []);
 
     const scroll = (direction) => {
         const { current } = scrollRef;
@@ -15,6 +42,16 @@ const BestSeller = () => {
             });
         }
     };
+
+    if (loading) {
+        return null; // Don't show anything while loading to prevent layout shift
+    }
+
+    // Don't show section if no products
+    if (products.length === 0) {
+        return null;
+    }
+
 
     return (
         <section className="w-full bg-white py-12 sm:py-16 border-t border-gray-100">
@@ -58,10 +95,10 @@ const BestSeller = () => {
                 >
                     {products.map((product) => (
                         <div
-                            key={product.id}
+                            key={product._id}
                             className="flex-shrink-0 w-[280px] snap-start group"
                         >
-                            <Link to={`/product/${product.id}`} className="block h-full border border-gray-100 rounded-xl overflow-hidden hover:shadow-lg hover:border-[#8b5e3c]/20 transition-all duration-300 bg-white">
+                            <Link to={`/product/${product._id}`} className="block h-full border border-gray-100 rounded-xl overflow-hidden hover:shadow-lg hover:border-[#8b5e3c]/20 transition-all duration-300 bg-white">
                                 <div className="relative aspect-[4/5] overflow-hidden bg-gray-100">
                                     <img
                                         src={product.image}
@@ -100,22 +137,6 @@ const BestSeller = () => {
                 </div>
             </div>
 
-            <style jsx>{`
-                .custom-scrollbar::-webkit-scrollbar {
-                    height: 6px;
-                }
-                .custom-scrollbar::-webkit-scrollbar-track {
-                    background: #f3f4f6;
-                    border-radius: 4px;
-                }
-                .custom-scrollbar::-webkit-scrollbar-thumb {
-                    background: #d4c4b7;
-                    border-radius: 4px;
-                }
-                .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-                    background: #8b5e3c;
-                }
-            `}</style>
         </section>
     );
 };

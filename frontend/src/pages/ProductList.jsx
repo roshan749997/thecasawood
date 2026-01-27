@@ -1,13 +1,70 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-
-import { products } from '../data/products'
+import { productsAPI } from '../services/api'
 
 const ProductList = () => {
     const [selectedCategory, setSelectedCategory] = useState('All')
     const [priceRange, setPriceRange] = useState([0, 100000])
     const [sortBy, setSortBy] = useState('popular')
     const [isFilterOpen, setIsFilterOpen] = useState(false)
+    const [products, setProducts] = useState([])
+    const [loading, setLoading] = useState(true)
+    const [error, setError] = useState(null)
+    const [page, setPage] = useState(1)
+    const [hasMore, setHasMore] = useState(true)
+
+    // Fetch products from API
+    useEffect(() => {
+        const fetchProducts = async () => {
+            try {
+                setLoading(true)
+                const params = {
+                    page,
+                    limit: 20
+                }
+
+                if (selectedCategory !== 'All') {
+                    params.category = selectedCategory
+                }
+
+                if (priceRange[0] > 0 || priceRange[1] < 100000) {
+                    params.minPrice = priceRange[0]
+                    params.maxPrice = priceRange[1]
+                }
+
+                // Map sortBy to API format
+                if (sortBy === 'popular') {
+                    params.sortBy = 'popular'
+                } else if (sortBy === 'newest') {
+                    params.sortBy = 'createdAt'
+                    params.sortOrder = 'desc'
+                } else if (sortBy === 'price_low') {
+                    params.sortBy = 'price'
+                    params.sortOrder = 'asc'
+                } else if (sortBy === 'price_high') {
+                    params.sortBy = 'price'
+                    params.sortOrder = 'desc'
+                }
+
+                const response = await productsAPI.getAll(params)
+                if (response.data.success) {
+                    if (page === 1) {
+                        setProducts(response.data.data)
+                    } else {
+                        setProducts(prev => [...prev, ...response.data.data])
+                    }
+                    setHasMore(response.data.pagination.page < response.data.pagination.pages)
+                }
+            } catch (err) {
+                setError(err.response?.data?.message || 'Failed to load products')
+                console.error('Error fetching products:', err)
+            } finally {
+                setLoading(false)
+            }
+        }
+
+        fetchProducts()
+    }, [selectedCategory, sortBy, priceRange, page])
 
     return (
         <div className="bg-gray-50 min-h-screen py-12">
@@ -116,57 +173,83 @@ const ProductList = () => {
 
                     {/* Product Grid */}
                     <div className="flex-1">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {products
-                                .filter(product => selectedCategory === 'All' || product.category === selectedCategory)
-                                .map((product) => (
-                                    <Link to={`/product/${product.id}`} key={product.id} className="group">
-                                        <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300">
-                                            <div className="relative aspect-[4/3] overflow-hidden bg-gray-100">
-                                                <img
-                                                    src={product.image}
-                                                    alt={product.name}
-                                                    className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
-                                                />
-                                                {product.tag && (
-                                                    <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full">
-                                                        <span className="text-xs font-bold uppercase tracking-wider text-[#8b5e3c]">{product.tag}</span>
-                                                    </div>
-                                                )}
-                                                <button className="absolute bottom-4 right-4 bg-white p-2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 hover:bg-[#8b5e3c]/10">
-                                                    <svg className="w-5 h-5 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                                                    </svg>
-                                                </button>
-                                            </div>
-
-                                            <div className="p-5">
-                                                <div className="flex justify-between items-start mb-2">
-                                                    <div className="text-xs font-medium text-[#8b5e3c] uppercase tracking-wide">{product.category}</div>
-                                                    <div className="flex items-center text-amber-400 text-xs">
-                                                        <span className="font-bold mr-1">{product.rating}</span>
-                                                        <svg className="w-3 h-3 fill-current" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" /></svg>
-                                                        <span className="text-gray-400 ml-1">({product.reviews})</span>
-                                                    </div>
+                        {loading && page === 1 ? (
+                            <div className="flex items-center justify-center py-20">
+                                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#8b5e3c]"></div>
+                            </div>
+                        ) : error ? (
+                            <div className="text-center py-20">
+                                <p className="text-red-500 mb-4">{error}</p>
+                                <button
+                                    onClick={() => window.location.reload()}
+                                    className="px-6 py-2 bg-[#8b5e3c] text-white rounded-lg hover:bg-[#70482d]"
+                                >
+                                    Retry
+                                </button>
+                            </div>
+                        ) : products.length === 0 ? (
+                            <div className="text-center py-20">
+                                <p className="text-gray-500">No products found</p>
+                            </div>
+                        ) : (
+                            <>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    {products.map((product) => (
+                                        <Link to={`/product/${product._id || product.id}`} key={product._id || product.id} className="group">
+                                            <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300">
+                                                <div className="relative aspect-[4/3] overflow-hidden bg-gray-100">
+                                                    <img
+                                                        src={product.image}
+                                                        alt={product.name}
+                                                        className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
+                                                    />
+                                                    {product.tag && (
+                                                        <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full">
+                                                            <span className="text-xs font-bold uppercase tracking-wider text-[#8b5e3c]">{product.tag}</span>
+                                                        </div>
+                                                    )}
+                                                    <button className="absolute bottom-4 right-4 bg-white p-2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 hover:bg-[#8b5e3c]/10">
+                                                        <svg className="w-5 h-5 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                                        </svg>
+                                                    </button>
                                                 </div>
 
-                                                <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-[#8b5e3c] transition-colors">{product.name}</h3>
+                                                <div className="p-5">
+                                                    <div className="flex justify-between items-start mb-2">
+                                                        <div className="text-xs font-medium text-[#8b5e3c] uppercase tracking-wide">{product.category}</div>
+                                                        <div className="flex items-center text-amber-400 text-xs">
+                                                            <span className="font-bold mr-1">{product.rating || 0}</span>
+                                                            <svg className="w-3 h-3 fill-current" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" /></svg>
+                                                            <span className="text-gray-400 ml-1">({product.reviews || 0})</span>
+                                                        </div>
+                                                    </div>
 
-                                                <div className="flex items-center justify-between mt-4">
-                                                    <span className="text-xl font-bold text-gray-900">₹{product.price.toLocaleString()}</span>
-                                                    <span className="text-sm font-medium text-[#8b5e3c] hover:text-[#70482d]">View Details →</span>
+                                                    <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-[#8b5e3c] transition-colors">{product.name}</h3>
+
+                                                    <div className="flex items-center justify-between mt-4">
+                                                        <span className="text-xl font-bold text-gray-900">₹{product.price.toLocaleString()}</span>
+                                                        <span className="text-sm font-medium text-[#8b5e3c] hover:text-[#70482d]">View Details →</span>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    </Link>
-                                ))}
-                        </div>
+                                        </Link>
+                                    ))}
+                                </div>
 
-                        <div className="mt-12 flex justify-center">
-                            <button className="px-8 py-3 bg-white border border-[#8b5e3c] text-[#8b5e3c] font-semibold rounded-full hover:bg-[#8b5e3c] hover:text-white transition-colors shadow-sm hover:shadow-md">
-                                Load More Products
-                            </button>
-                        </div>
+                                {hasMore && (
+                                    <div className="mt-12 flex justify-center">
+                                        <button
+                                            onClick={() => setPage(prev => prev + 1)}
+                                            disabled={loading}
+                                            className="px-8 py-3 bg-white border border-[#8b5e3c] text-[#8b5e3c] font-semibold rounded-full hover:bg-[#8b5e3c] hover:text-white transition-colors shadow-sm hover:shadow-md disabled:opacity-50"
+                                        >
+                                            {loading ? 'Loading...' : 'Load More Products'}
+                                        </button>
+                                    </div>
+                                )}
+                            </>
+                        )}
                     </div>
                 </div>
             </div>

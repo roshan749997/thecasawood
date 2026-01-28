@@ -45,16 +45,12 @@ const InteriorSolutions = () => {
                         </div>
 
                         {/* Image Side */}
-                        <div className="relative h-[400px] lg:h-auto bg-gray-50 flex items-center justify-center p-8">
+                        <div className="relative h-[460px] sm:h-[520px] lg:h-auto bg-gray-50 flex items-center justify-center p-8 lg:p-12">
                             <img
-                                src="https://res.cloudinary.com/dvkxgrcbv/image/upload/v1769155788/Grey_3D_Wall_Art_Frame_Instagram_Post_fasv3p.svg"
+                                src="https://res.cloudinary.com/dvkxgrcbv/image/upload/v1769592731/8d7f99d1-7ca6-497b-b2c5-fcec048744b9.png"
                                 alt="Smart Storage Bed"
-                                className="w-full max-w-md h-auto object-cover rounded-xl shadow-lg"
+                                className="w-full max-w-xl lg:max-w-2xl h-full object-cover rounded-xl shadow-lg"
                             />
-                            <div className="absolute bottom-6 left-6 bg-white p-3 rounded-sm shadow-md max-w-xs">
-                                <p className="text-xs font-bold text-[#8b5e3c] uppercase mb-1">Featured</p>
-                                <p className="font-serif text-gray-900 text-sm">The Casawood Hydraulic Bed</p>
-                            </div>
                         </div>
                     </div>
                 </div>

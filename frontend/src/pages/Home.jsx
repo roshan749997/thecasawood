@@ -10,21 +10,23 @@ import ModernLuxury from '../components/ModernLuxury'
 import CraftsmanshipSection from '../components/CraftsmanshipSection'
 import TestimonialSection from '../components/TestimonialSection'
 import PoliciesSection from '../components/PoliciesSection'
+import WhyChooseCasawood from '../components/WhyChooseCasawood'
 
 const Home = () => {
     return (
         <>
             <HeroSection />
-            <PoliciesSection />
             <PopularCategories />
-            <StyleInspiration />
+            <ModernLuxury />
             <FeaturedCollection />
             <BestSeller />
 
+            <StyleInspiration />
             <InteriorSolutions />
-            <ModernLuxury />
             <CraftsmanshipSection />
+            <WhyChooseCasawood />
             <TestimonialSection />
+            <PoliciesSection />
 
 
         </>

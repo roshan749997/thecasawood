@@ -53,7 +53,7 @@ const PopularCategories = () => {
                 </div>
 
                 {/* Categories Grid */}
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6 lg:gap-8">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6 lg:gap-8">
                     {categories.map((category) => (
                         <Link
                             to={`/products?category=${category.link}`}

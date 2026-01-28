@@ -64,9 +64,6 @@ const ModernLuxury = () => {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
                                 </svg>
                             </Link>
-                            <Link to="/products" className="bg-white text-[#3e2b22] border border-[#3e2b22]/20 px-8 py-4 rounded-sm font-medium hover:border-[#3e2b22] transition-colors">
-                                View Gallery
-                            </Link>
                         </div>
                     </div>
 

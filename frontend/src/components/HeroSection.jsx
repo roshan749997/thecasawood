@@ -14,6 +14,11 @@ const HeroSection = () => {
       desktop: "https://res.cloudinary.com/dvkxgrcbv/image/upload/v1769081274/Brown_Minimalist_Furniture_Banner_Landscape_1920_x_600_mm_dwd9gl.svg",
       mobile: "https://res.cloudinary.com/dvkxgrcbv/image/upload/v1769086805/Beige_Modern_Luxury_Real_Estate_Instagram_Post_1080_x_1080_px_iessfn.png",
       alt: "Brown Minimalist Furniture Banner"
+    },
+    {
+      desktop: "https://res.cloudinary.com/dvkxgrcbv/image/upload/v1769498382/Green_Minimalist_Home_Furniture_Banner_1920_x_600_mm_pqsvlg.svg",
+      mobile: "https://res.cloudinary.com/dvkxgrcbv/image/upload/v1769499776/Blue_and_Grey_Chair_Clean_and_Simple_Business_Promo_Instagram_Post_zjvn1i.svg",
+      alt: "Green Minimalist Home Furniture Banner"
     }
   ];
 

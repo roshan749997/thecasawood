@@ -40,9 +40,6 @@ const StyleInspiration = () => {
                             <Link to="/products" className="px-8 py-4 bg-[#5c4033] text-white font-medium hover:bg-[#8b5e3c] transition-colors shadow-lg hover:shadow-xl rounded-sm">
                                 Explore Collection
                             </Link>
-                            <Link to="/about" className="px-8 py-4 border border-[#5c4033] text-[#5c4033] font-medium hover:bg-[#5c4033] hover:text-white transition-colors rounded-sm">
-                                Our Story
-                            </Link>
                         </div>
 
                         <div className="mt-12 grid grid-cols-3 gap-8 border-t border-gray-200 pt-8">

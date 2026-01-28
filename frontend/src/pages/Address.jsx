@@ -75,8 +75,64 @@ const Address = () => {
     // ==========================================
     // 3. Address Form Handlers
     // ==========================================
+    const [pincodeStatus, setPincodeStatus] = useState('initial') // initial, loading, valid, invalid
+    const [pincodeError, setPincodeError] = useState('')
+
     const handleInputChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value })
+        const { name, value } = e.target
+
+        // Pincode specific logic
+        if (name === 'pincode') {
+            // Only allow numbers
+            if (!/^\d*$/.test(value)) return
+
+            // Limit to 6 digits
+            if (value.length > 6) return
+
+            setFormData(prev => ({ ...prev, [name]: value }))
+
+            // Verify when 6 digits
+            if (value.length === 6) {
+                verifyPincode(value)
+            } else {
+                setPincodeStatus('initial')
+                setPincodeError('')
+            }
+        } else {
+            setFormData(prev => ({ ...prev, [name]: value }))
+        }
+    }
+
+    const verifyPincode = async (code) => {
+        try {
+            setPincodeStatus('loading')
+            setPincodeError('')
+
+            const response = await fetch(`https://api.postalpincode.in/pincode/${code}`)
+            const data = await response.json()
+
+            if (data && data[0].Status === 'Success') {
+                const details = data[0].PostOffice[0]
+                setFormData(prev => ({
+                    ...prev,
+                    city: details.District,
+                    state: details.State,
+                    // Optional: country: details.Country
+                }))
+                setPincodeStatus('valid')
+            } else {
+                setPincodeStatus('invalid')
+                setPincodeError('Invalid Pincode. Delivery not available.')
+                // Reset city/state to force manual correction if needed, or keep for user to see
+                setFormData(prev => ({ ...prev, city: '', state: '' }))
+            }
+        } catch (error) {
+            console.error('Pincode lookup failed:', error)
+            setPincodeStatus('initial') // Allow manual entry on API error? Or show warning.
+            // Let's assume network error means we can't verify, user can maybe proceed manually?
+            // Usually safest to say "Could not verify"
+            setPincodeError('Could not verify pincode. Check connection.')
+        }
     }
 
     const resetForm = () => {
@@ -84,6 +140,8 @@ const Address = () => {
             name: '', phone: '', pincode: '', address: '',
             locality: '', city: '', state: '', type: 'Home'
         })
+        setPincodeStatus('initial')
+        setPincodeError('')
         setEditingAddress(null)
         setShowAddressForm(false)
     }
@@ -331,7 +389,35 @@ const Address = () => {
                                         </div>
 
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <input type="text" name="pincode" placeholder="Pincode *" value={formData.pincode} onChange={handleInputChange} required maxLength="6" className="input-field p-3 border rounded w-full focus:ring-1 focus:ring-[#8b5e3c] outline-none" />
+                                            <div className="relative">
+                                                <input
+                                                    type="text"
+                                                    name="pincode"
+                                                    placeholder="Pincode *"
+                                                    value={formData.pincode}
+                                                    onChange={handleInputChange}
+                                                    required
+                                                    maxLength="6"
+                                                    className={`input-field p-3 border rounded w-full outline-none focus:ring-1 ${pincodeStatus === 'invalid' ? 'border-red-500 focus:ring-red-500' :
+                                                        pincodeStatus === 'valid' ? 'border-green-500 focus:ring-green-500' :
+                                                            'focus:ring-[#8b5e3c]'
+                                                        }`}
+                                                />
+                                                {pincodeStatus === 'loading' && (
+                                                    <div className="absolute right-3 top-3.5">
+                                                        <svg className="animate-spin h-5 w-5 text-[#8b5e3c]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                        </svg>
+                                                    </div>
+                                                )}
+                                                {pincodeStatus === 'valid' && (
+                                                    <div className="absolute right-3 top-3.5 text-green-500">
+                                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" /></svg>
+                                                    </div>
+                                                )}
+                                                {pincodeError && <p className="text-xs text-red-500 mt-1 absolute -bottom-5 left-0">{pincodeError}</p>}
+                                            </div>
                                             <input type="text" name="locality" placeholder="Locality / Area *" value={formData.locality} onChange={handleInputChange} required className="input-field p-3 border rounded w-full focus:ring-1 focus:ring-[#8b5e3c] outline-none" />
                                         </div>
 

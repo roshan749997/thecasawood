@@ -14,10 +14,8 @@ const Navbar = () => {
     // Fetch cart count
     useEffect(() => {
         const fetchCartCount = async () => {
-            if (!isAuthenticated) {
-                setCartCount(0)
-                return
-            }
+            // Fetch for both auth and guest users
+            // if (!isAuthenticated) { ... }
 
             try {
                 const response = await cartAPI.get()

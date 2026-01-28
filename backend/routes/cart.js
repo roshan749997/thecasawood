@@ -1,24 +1,45 @@
 import express from 'express';
 import Cart from '../models/Cart.js';
 import Product from '../models/Product.js';
-import { protect } from '../middleware/auth.js';
+import { protect, optionalProtect } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// All routes require authentication
-router.use(protect);
+// Optional auth check - handled inside routes
+// router.use(protect);
 
 // @route   GET /api/cart
-// @desc    Get user's cart
-// @access  Private
-router.get('/', async (req, res) => {
+// @desc    Get user or guest cart
+// @access  Public
+router.get('/', optionalProtect, async (req, res) => {
   try {
-    let cart = await Cart.findOne({ user: req.user._id })
+    const guestId = req.query.guestId;
+    let query = {};
+
+    if (req.user) {
+      query.user = req.user._id;
+    } else if (guestId) {
+      query.guestId = guestId;
+    } else {
+      // Return empty if no ID provided
+      return res.json({
+        success: true,
+        data: { items: [], savedForLater: [] },
+        totals: { subtotal: 0, itemCount: 0 }
+      });
+    }
+
+    let cart = await Cart.findOne(query)
       .populate('items.product', 'name image price originalPrice inStock')
       .populate('savedForLater.product', 'name image price originalPrice inStock');
 
     if (!cart) {
-      cart = await Cart.create({ user: req.user._id, items: [], savedForLater: [] });
+      // Only create if we have a valid identifier
+      if (req.user) {
+        cart = await Cart.create({ user: req.user._id, items: [], savedForLater: [] });
+      } else if (guestId) {
+        cart = await Cart.create({ guestId, items: [], savedForLater: [] });
+      }
     }
 
     res.json({
@@ -40,8 +61,8 @@ router.get('/', async (req, res) => {
 
 // @route   POST /api/cart
 // @desc    Add item to cart
-// @access  Private
-router.post('/', async (req, res) => {
+// @access  Public
+router.post('/', optionalProtect, async (req, res) => {
   try {
     const { productId, quantity = 1 } = req.body;
 
@@ -69,9 +90,23 @@ router.post('/', async (req, res) => {
     }
 
     // Get or create cart
-    let cart = await Cart.findOne({ user: req.user._id });
+    const guestId = req.body.guestId;
+    let query = {};
+    if (req.user) {
+      query.user = req.user._id;
+    } else if (guestId) {
+      query.guestId = guestId;
+    } else {
+      return res.status(401).json({ success: false, message: 'Not authorized' });
+    }
+
+    let cart = await Cart.findOne(query);
     if (!cart) {
-      cart = await Cart.create({ user: req.user._id, items: [], savedForLater: [] });
+      if (req.user) {
+        cart = await Cart.create({ user: req.user._id, items: [], savedForLater: [] });
+      } else {
+        cart = await Cart.create({ guestId, items: [], savedForLater: [] });
+      }
     }
 
     // Check if item already exists in cart
@@ -114,8 +149,8 @@ router.post('/', async (req, res) => {
 
 // @route   PUT /api/cart/:itemId
 // @desc    Update cart item quantity
-// @access  Private
-router.put('/:itemId', async (req, res) => {
+// @access  Public
+router.put('/:itemId', optionalProtect, async (req, res) => {
   try {
     const { quantity } = req.body;
 
@@ -126,7 +161,13 @@ router.put('/:itemId', async (req, res) => {
       });
     }
 
-    const cart = await Cart.findOne({ user: req.user._id });
+    const guestId = req.body.guestId;
+    let query = {};
+    if (req.user) query.user = req.user._id;
+    else if (guestId) query.guestId = guestId;
+    else return res.status(401).json({ success: false, message: 'Not authorized' });
+
+    const cart = await Cart.findOne(query);
     if (!cart) {
       return res.status(404).json({
         success: false,
@@ -171,10 +212,16 @@ router.put('/:itemId', async (req, res) => {
 
 // @route   DELETE /api/cart/:itemId
 // @desc    Remove item from cart
-// @access  Private
-router.delete('/:itemId', async (req, res) => {
+// @access  Public
+router.delete('/:itemId', optionalProtect, async (req, res) => {
   try {
-    const cart = await Cart.findOne({ user: req.user._id });
+    const guestId = req.query.guestId; // DELETE requests use query params usually
+    let query = {};
+    if (req.user) query.user = req.user._id;
+    else if (guestId) query.guestId = guestId;
+    else return res.status(401).json({ success: false, message: 'Not authorized' });
+
+    const cart = await Cart.findOne(query);
     if (!cart) {
       return res.status(404).json({
         success: false,
@@ -208,10 +255,16 @@ router.delete('/:itemId', async (req, res) => {
 
 // @route   POST /api/cart/save-for-later/:itemId
 // @desc    Move item to saved for later
-// @access  Private
-router.post('/save-for-later/:itemId', async (req, res) => {
+// @access  Public
+router.post('/save-for-later/:itemId', optionalProtect, async (req, res) => {
   try {
-    const cart = await Cart.findOne({ user: req.user._id });
+    const guestId = req.body.guestId;
+    let query = {};
+    if (req.user) query.user = req.user._id;
+    else if (guestId) query.guestId = guestId;
+    else return res.status(401).json({ success: false, message: 'Not authorized' });
+
+    const cart = await Cart.findOne(query);
     if (!cart) {
       return res.status(404).json({
         success: false,
@@ -260,10 +313,16 @@ router.post('/save-for-later/:itemId', async (req, res) => {
 
 // @route   POST /api/cart/move-to-cart/:itemId
 // @desc    Move item from saved for later to cart
-// @access  Private
-router.post('/move-to-cart/:itemId', async (req, res) => {
+// @access  Public
+router.post('/move-to-cart/:itemId', optionalProtect, async (req, res) => {
   try {
-    const cart = await Cart.findOne({ user: req.user._id });
+    const guestId = req.body.guestId;
+    let query = {};
+    if (req.user) query.user = req.user._id;
+    else if (guestId) query.guestId = guestId;
+    else return res.status(401).json({ success: false, message: 'Not authorized' });
+
+    const cart = await Cart.findOne(query);
     if (!cart) {
       return res.status(404).json({
         success: false,
@@ -283,7 +342,7 @@ router.post('/move-to-cart/:itemId', async (req, res) => {
     }
 
     const item = cart.savedForLater[itemIndex];
-    
+
     // Check if already in cart
     const existingItemIndex = cart.items.findIndex(
       cartItem => cartItem.product.toString() === item.product.toString()
@@ -322,10 +381,16 @@ router.post('/move-to-cart/:itemId', async (req, res) => {
 
 // @route   DELETE /api/cart/clear
 // @desc    Clear entire cart
-// @access  Private
-router.delete('/clear', async (req, res) => {
+// @access  Public
+router.delete('/clear', optionalProtect, async (req, res) => {
   try {
-    const cart = await Cart.findOne({ user: req.user._id });
+    const guestId = req.query.guestId;
+    let query = {};
+    if (req.user) query.user = req.user._id;
+    else if (guestId) query.guestId = guestId;
+    else return res.status(401).json({ success: false, message: 'Not authorized' });
+
+    const cart = await Cart.findOne(query);
     if (!cart) {
       return res.status(404).json({
         success: false,

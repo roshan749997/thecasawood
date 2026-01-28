@@ -211,6 +211,10 @@ const ProductList = () => {
                                                             <span className="text-xs font-bold uppercase tracking-wider text-[#8b5e3c]">{product.tag}</span>
                                                         </div>
                                                     )}
+                                                    {/* 25% OFF Badge - Top Right */}
+                                                    <div className="absolute top-4 right-4 bg-red-600 text-white px-2 py-1 text-xs font-bold rounded shadow-sm">
+                                                        25% OFF
+                                                    </div>
                                                     <button className="absolute bottom-4 right-4 bg-white p-2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 hover:bg-[#8b5e3c]/10">
                                                         <svg className="w-5 h-5 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
@@ -234,9 +238,8 @@ const ProductList = () => {
                                                         <div className="flex flex-col">
                                                             <div className="flex items-center gap-2">
                                                                 <span className="text-xl font-bold text-gray-900">₹{product.price.toLocaleString()}</span>
-                                                                <span className="text-sm font-medium text-[#8b5e3c] bg-[#8b5e3c]/10 px-1.5 py-0.5 rounded">25% OFF</span>
+                                                                <span className="text-sm text-gray-400 line-through">₹{Math.round(product.price * 1.25).toLocaleString()}</span>
                                                             </div>
-                                                            <span className="text-sm text-gray-400 line-through">₹{Math.round(product.price * 1.25).toLocaleString()}</span>
                                                         </div>
                                                         <span className="text-sm font-medium text-[#8b5e3c] hover:text-[#70482d]">View →</span>
                                                     </div>

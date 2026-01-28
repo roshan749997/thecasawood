@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { cartAPI } from '../services/api'
 import { useAuth } from '../context/AuthContext'
 
 const Cart = () => {
+    const navigate = useNavigate()
     const { isAuthenticated } = useAuth()
     const [cartItems, setCartItems] = useState([])
     const [savedForLater, setSavedForLater] = useState([])
@@ -11,11 +12,8 @@ const Cart = () => {
 
     // Fetch cart from API
     useEffect(() => {
-        // Only fetch if authenticated
-        if (!isAuthenticated) {
-            setLoading(false)
-            return
-        }
+        // Fetch cart when component mounts (or auth state changes)
+        // Removed explicit auth check to support guest cart
 
         const fetchCart = async () => {
             try {
@@ -130,28 +128,8 @@ const Cart = () => {
         )
     }
 
-    // Show login prompt if not authenticated
-    if (!isAuthenticated) {
-        return (
-            <div className="min-h-screen bg-gray-100 flex items-center justify-center py-12">
-                <div className="text-center max-w-md px-4">
-                    <div className="mb-6">
-                        <svg className="w-32 h-32 mx-auto text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                        </svg>
-                    </div>
-                    <h2 className="text-2xl font-bold text-gray-900 mb-3">Please Login</h2>
-                    <p className="text-gray-500 mb-6">Login to view your cart and saved items</p>
-                    <Link
-                        to="/"
-                        className="inline-block px-8 py-3 bg-[#8b5e3c] text-white font-semibold rounded-lg hover:bg-[#70482d] transition-colors shadow-md hover:shadow-lg"
-                    >
-                        Go to Home
-                    </Link>
-                </div>
-            </div>
-        )
-    }
+    // Removed login prompt - Guests can view cart now
+    // if (!isAuthenticated) { ... }
 
     if (cartItems.length === 0 && savedForLater.length === 0) {
         return (
@@ -408,12 +386,19 @@ const Cart = () => {
                                 </div>
 
                                 <div className="p-4 border-t border-gray-200">
-                                    <Link
-                                        to="/address"
+                                    <button
+                                        onClick={() => {
+                                            if (isAuthenticated) {
+                                                navigate('/address')
+                                            } else {
+                                                alert("Please login to place your order.")
+                                                navigate('/login', { state: { from: '/address' } })
+                                            }
+                                        }}
                                         className="block w-full py-3 bg-[#5c4033] text-white text-center font-bold uppercase rounded-sm hover:bg-[#3e2b22] transition-colors shadow-md hover:shadow-lg"
                                     >
                                         Place Order
-                                    </Link>
+                                    </button>
                                 </div>
                             </div>
                         </div>

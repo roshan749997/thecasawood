@@ -24,17 +24,39 @@ api.interceptors.request.use(
 );
 
 // Response interceptor to handle errors
+// Response interceptor to handle errors
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    // Determine if it's a 401 and NOT a guest-allowed route
+    // Actually, guests might get 401 if logic fails, but with optionalProtect they shouldn't.
+    // However, if token is invalid, backend might return 401. 
+    // Let's keep 401 redirect BUT maybe exclude specific scenarios if needed.
+    // Ideally, with optionalProtect, guest requests don't 401. 
+    // Users with bad token might.
     if (error.response?.status === 401) {
-      // Unauthorized - remove token and redirect to login
+      // Check if it is a cart route - we don't want to redirect guests if they just have no access
+      // But optionalProtect should return 200 even for guests.
+      // If we get 401, it means strictly "Unauthorized" which shouldn't happen for public routes.
+      // So standard behavior is fine, IF backend is correct.
+      // However, if we receive 401, we remove token.
       removeToken();
+      // Only redirect if NOT on public pages? No, global logout is safer.
       window.location.href = '/';
     }
     return Promise.reject(error);
   }
 );
+
+// Helper for Guest Cart
+const getGuestId = () => {
+  let guestId = localStorage.getItem('guestId');
+  if (!guestId) {
+    guestId = 'guest_' + Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
+    localStorage.setItem('guestId', guestId);
+  }
+  return guestId;
+};
 
 // Auth API
 export const authAPI = {
@@ -52,14 +74,15 @@ export const productsAPI = {
 };
 
 // Cart API
+// Cart API
 export const cartAPI = {
-  get: () => api.get('/cart'),
-  add: (data) => api.post('/cart', data),
-  update: (itemId, data) => api.put(`/cart/${itemId}`, data),
-  remove: (itemId) => api.delete(`/cart/${itemId}`),
-  saveForLater: (itemId) => api.post(`/cart/save-for-later/${itemId}`),
-  moveToCart: (itemId) => api.post(`/cart/move-to-cart/${itemId}`),
-  clear: () => api.delete('/cart/clear')
+  get: () => api.get('/cart', { params: { guestId: getGuestId() } }),
+  add: (data) => api.post('/cart', { ...data, guestId: getGuestId() }),
+  update: (itemId, data) => api.put(`/cart/${itemId}`, { ...data, guestId: getGuestId() }),
+  remove: (itemId) => api.delete(`/cart/${itemId}`, { params: { guestId: getGuestId() } }),
+  saveForLater: (itemId) => api.post(`/cart/save-for-later/${itemId}`, { guestId: getGuestId() }),
+  moveToCart: (itemId) => api.post(`/cart/move-to-cart/${itemId}`, { guestId: getGuestId() }),
+  clear: () => api.delete('/cart/clear', { params: { guestId: getGuestId() } })
 };
 
 // Wishlist API

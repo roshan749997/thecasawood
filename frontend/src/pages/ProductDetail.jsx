@@ -49,10 +49,8 @@ const ProductDetail = () => {
     }, [id, isAuthenticated])
 
     const handleAddToCart = async () => {
-        if (!isAuthenticated) {
-            navigate('/login', { state: { from: location } })
-            return
-        }
+        // Removed auth check to allow guest cart
+        // if (!isAuthenticated) { ... }
 
         try {
             setAddingToCart(true)
@@ -69,10 +67,8 @@ const ProductDetail = () => {
     }
 
     const handleBuyNow = async () => {
-        if (!isAuthenticated) {
-            navigate('/login', { state: { from: location } })
-            return
-        }
+        // Removed auth check
+        // if (!isAuthenticated) { ... }
 
         try {
             setAddingToCart(true)

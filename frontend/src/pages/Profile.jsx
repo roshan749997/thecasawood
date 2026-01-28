@@ -1,10 +1,26 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import { usersAPI } from '../services/api'
 import { useAuth } from '../context/AuthContext'
 
 const Profile = () => {
-    const { isAuthenticated, user, logout } = useAuth()
+    const { isAuthenticated, user, logout, updateUser } = useAuth()
     const [loading, setLoading] = useState(true)
+    const [isEditing, setIsEditing] = useState(false)
+    const [formData, setFormData] = useState({
+        name: '',
+        phone: ''
+    })
+    const [updateLoading, setUpdateLoading] = useState(false)
+
+    useEffect(() => {
+        if (user) {
+            setFormData({
+                name: user.name || '',
+                phone: user.phone || ''
+            })
+        }
+    }, [user])
 
     useEffect(() => {
         setLoading(false)
@@ -79,6 +95,7 @@ const Profile = () => {
                         </div>
                         <div className="flex gap-3 w-full sm:w-auto">
                             <button
+                                onClick={() => setIsEditing(true)}
                                 className="flex-1 sm:flex-none px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium text-sm sm:text-base"
                             >
                                 Edit Profile
@@ -184,33 +201,112 @@ const Profile = () => {
                         <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 sticky top-24 border border-gray-100">
                             <div className="flex items-center justify-between mb-6">
                                 <h2 className="text-lg font-bold text-gray-900">Personal Details</h2>
-                                <button className="text-[#8b5e3c] text-sm font-medium hover:underline">Edit</button>
+                                {!isEditing && (
+                                    <button
+                                        onClick={() => setIsEditing(true)}
+                                        className="text-[#8b5e3c] text-sm font-medium hover:underline"
+                                    >
+                                        Edit
+                                    </button>
+                                )}
                             </div>
 
                             <div className="space-y-6">
-                                <div className="group">
-                                    <label className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1 block">Full Name</label>
-                                    <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg group-hover:bg-gray-100 transition-colors">
-                                        <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-                                        <p className="font-medium text-gray-900 text-sm break-words">{user?.name || 'Not provided'}</p>
-                                    </div>
-                                </div>
+                                {isEditing ? (
+                                    <form onSubmit={async (e) => {
+                                        e.preventDefault()
+                                        try {
+                                            setUpdateLoading(true)
+                                            const response = await usersAPI.updateProfile(formData)
+                                            if (response.data.success) {
+                                                updateUser(response.data.user) // Update context
+                                                setIsEditing(false)
+                                            }
+                                        } catch (error) {
+                                            alert(error.response?.data?.message || 'Failed to update profile')
+                                        } finally {
+                                            setUpdateLoading(false)
+                                        }
+                                    }} className="space-y-6">
+                                        <div className="group">
+                                            <label className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1 block">Full Name</label>
+                                            <input
+                                                type="text"
+                                                value={formData.name}
+                                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                                className="w-full p-3 border border-[#8b5e3c] rounded-lg focus:ring-1 focus:ring-[#8b5e3c] outline-none bg-white"
+                                                required
+                                            />
+                                        </div>
 
-                                <div className="group">
-                                    <label className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1 block">Email Address</label>
-                                    <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg group-hover:bg-gray-100 transition-colors">
-                                        <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
-                                        <p className="font-medium text-gray-900 text-sm break-all">{user?.email || 'Not provided'}</p>
-                                    </div>
-                                </div>
+                                        <div className="group">
+                                            <label className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1 block">Email Address</label>
+                                            <div className="flex items-center gap-3 p-3 bg-gray-100 rounded-lg text-gray-500 cursor-not-allowed">
+                                                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                                                <p className="font-medium text-sm break-all">{user?.email}</p>
+                                                <span className="text-xs ml-auto">(Read Only)</span>
+                                            </div>
+                                        </div>
 
-                                <div className="group">
-                                    <label className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1 block">Phone Number</label>
-                                    <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg group-hover:bg-gray-100 transition-colors">
-                                        <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
-                                        <p className="font-medium text-gray-900 text-sm">{user?.phone || 'Not provided'}</p>
-                                    </div>
-                                </div>
+                                        <div className="group">
+                                            <label className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1 block">Phone Number</label>
+                                            <input
+                                                type="tel"
+                                                value={formData.phone}
+                                                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                                                className="w-full p-3 border border-[#8b5e3c] rounded-lg focus:ring-1 focus:ring-[#8b5e3c] outline-none bg-white"
+                                                placeholder="Add phone number"
+                                            />
+                                        </div>
+
+                                        <div className="flex gap-3 pt-4">
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setIsEditing(false)
+                                                    setFormData({ name: user.name || '', phone: user.phone || '' })
+                                                }}
+                                                className="flex-1 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 font-medium"
+                                                disabled={updateLoading}
+                                            >
+                                                Cancel
+                                            </button>
+                                            <button
+                                                type="submit"
+                                                className="flex-1 py-2 bg-[#8b5e3c] text-white rounded-lg hover:bg-[#70482d] font-bold"
+                                                disabled={updateLoading}
+                                            >
+                                                {updateLoading ? 'Saving...' : 'Save Changes'}
+                                            </button>
+                                        </div>
+                                    </form>
+                                ) : (
+                                    <>
+                                        <div className="group">
+                                            <label className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1 block">Full Name</label>
+                                            <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg group-hover:bg-gray-100 transition-colors">
+                                                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                                                <p className="font-medium text-gray-900 text-sm break-words">{user?.name || 'Not provided'}</p>
+                                            </div>
+                                        </div>
+
+                                        <div className="group">
+                                            <label className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1 block">Email Address</label>
+                                            <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg group-hover:bg-gray-100 transition-colors">
+                                                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                                                <p className="font-medium text-gray-900 text-sm break-all">{user?.email || 'Not provided'}</p>
+                                            </div>
+                                        </div>
+
+                                        <div className="group">
+                                            <label className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1 block">Phone Number</label>
+                                            <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg group-hover:bg-gray-100 transition-colors">
+                                                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
+                                                <p className="font-medium text-gray-900 text-sm">{user?.phone || 'Not provided'}</p>
+                                            </div>
+                                        </div>
+                                    </>
+                                )}
 
                                 <div className="pt-4 border-t border-gray-100">
                                     <div className="flex items-center gap-2 text-gray-500 text-xs">

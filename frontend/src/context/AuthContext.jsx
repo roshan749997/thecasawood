@@ -95,7 +95,8 @@ export const AuthProvider = ({ children }) => {
     login,
     register,
     googleLogin,
-    logout
+    logout,
+    updateUser: setUser // Expose setter to allow updates from Profile
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

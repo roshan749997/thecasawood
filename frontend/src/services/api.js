@@ -73,6 +73,7 @@ export const wishlistAPI = {
 // Orders API
 export const ordersAPI = {
   getAll: (params) => api.get('/orders', { params }),
+  getMyOrders: () => api.get('/orders'),
   getById: (id) => api.get(`/orders/${id}`),
   create: (data) => api.post('/orders', data),
   track: (orderNumber) => api.get(`/orders/track/${orderNumber}`)

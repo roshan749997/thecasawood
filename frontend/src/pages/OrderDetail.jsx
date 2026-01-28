@@ -96,9 +96,12 @@ const OrderDetail = () => {
                                             <p className="text-sm text-gray-500 mb-2">Quantity: {item.quantity}</p>
                                             <div className="flex items-center gap-2">
                                                 <span className="font-bold text-gray-900">₹{item.price.toLocaleString()}</span>
-                                                {item.originalPrice > item.price && (
-                                                    <span className="text-sm text-gray-400 line-through">₹{item.originalPrice.toLocaleString()}</span>
-                                                )}
+                                                <span className="text-sm text-gray-400 line-through">
+                                                    ₹{Math.round(item.price * 1.25).toLocaleString()}
+                                                </span>
+                                                <span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded">
+                                                    25% OFF
+                                                </span>
                                             </div>
                                         </div>
                                     </div>

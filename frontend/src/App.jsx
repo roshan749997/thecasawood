@@ -19,6 +19,7 @@ const Wishlist = lazy(() => import('./pages/Wishlist'))
 const Login = lazy(() => import('./pages/Login'))
 const Signup = lazy(() => import('./pages/Signup'))
 const OrderSuccess = lazy(() => import('./pages/OrderSuccess'))
+const Orders = lazy(() => import('./pages/Orders'))
 
 // Loading component
 const PageLoader = () => (
@@ -44,6 +45,7 @@ const AppContent = () => {
           <Route path="/address" element={<Address />} />
 
           <Route path="/order/:id" element={<OrderDetail />} />
+          <Route path="/orders" element={<Orders />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/wishlist" element={<Wishlist />} />
           <Route path="/login" element={<Login />} />

@@ -113,8 +113,9 @@ const Cart = () => {
 
     const discount = cartItems.reduce((sum, item) => {
         const product = item.product
-        const originalPrice = product?.originalPrice || product?.price || item.price
+        // Force 25% logic
         const price = product?.price || item.price
+        const originalPrice = Math.round(price * 1.25)
         return sum + ((originalPrice - price) * item.quantity)
     }, 0)
 
@@ -238,14 +239,8 @@ const Cart = () => {
                                                         {/* Price */}
                                                         <div className="flex items-center gap-3 mb-3">
                                                             <span className="text-xl md:text-2xl font-bold text-gray-900">₹{(productPrice * item.quantity).toLocaleString()}</span>
-                                                            {productOriginalPrice > productPrice && (
-                                                                <>
-                                                                    <span className="text-sm text-gray-500 line-through">₹{(productOriginalPrice * item.quantity).toLocaleString()}</span>
-                                                                    <span className="text-sm text-[#8b5e3c] font-bold">
-                                                                        {Math.round(((productOriginalPrice - productPrice) / productOriginalPrice) * 100)}% off
-                                                                    </span>
-                                                                </>
-                                                            )}
+                                                            <span className="text-sm text-gray-500 line-through">₹{(Math.round(productPrice * 1.25) * item.quantity).toLocaleString()}</span>
+                                                            <span className="text-sm text-[#8b5e3c] font-bold">25% off</span>
                                                         </div>
 
                                                         {/* Delivery Info */}
@@ -337,9 +332,8 @@ const Cart = () => {
                                                         <h3 className="text-base font-medium text-gray-900 mb-2 line-clamp-2">{productName}</h3>
                                                         <div className="flex items-center gap-3 mb-3">
                                                             <span className="text-xl font-bold text-gray-900">₹{productPrice.toLocaleString()}</span>
-                                                            {productOriginalPrice > productPrice && (
-                                                                <span className="text-sm text-gray-500 line-through">₹{productOriginalPrice.toLocaleString()}</span>
-                                                            )}
+                                                            <span className="text-sm text-gray-500 line-through">₹{Math.round(productPrice * 1.25).toLocaleString()}</span>
+                                                            <span className="text-xs text-[#8b5e3c] font-bold">25% OFF</span>
                                                         </div>
                                                         <div className="flex gap-4">
                                                             <button

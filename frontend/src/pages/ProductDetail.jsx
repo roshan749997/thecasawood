@@ -295,8 +295,8 @@ const ProductDetail = () => {
                         {/* Price */}
                         <div className="flex items-end gap-3 mb-4">
                             <span className="text-3xl font-bold text-gray-900">₹{product.price.toLocaleString()}</span>
-                            <span className="text-gray-500 text-base line-through">₹{originalPrice.toLocaleString()}</span>
-                            <span className="text-[#8b5e3c] text-base font-bold">{discount}% off</span>
+                            <span className="text-gray-500 text-base line-through">₹{Math.round(product.price * 1.25).toLocaleString()}</span>
+                            <span className="text-[#8b5e3c] text-base font-bold">25% off</span>
                         </div>
 
 

@@ -231,8 +231,14 @@ const ProductList = () => {
                                                     <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-[#8b5e3c] transition-colors">{product.name}</h3>
 
                                                     <div className="flex items-center justify-between mt-4">
-                                                        <span className="text-xl font-bold text-gray-900">₹{product.price.toLocaleString()}</span>
-                                                        <span className="text-sm font-medium text-[#8b5e3c] hover:text-[#70482d]">View Details →</span>
+                                                        <div className="flex flex-col">
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="text-xl font-bold text-gray-900">₹{product.price.toLocaleString()}</span>
+                                                                <span className="text-sm font-medium text-[#8b5e3c] bg-[#8b5e3c]/10 px-1.5 py-0.5 rounded">25% OFF</span>
+                                                            </div>
+                                                            <span className="text-sm text-gray-400 line-through">₹{Math.round(product.price * 1.25).toLocaleString()}</span>
+                                                        </div>
+                                                        <span className="text-sm font-medium text-[#8b5e3c] hover:text-[#70482d]">View →</span>
                                                     </div>
                                                 </div>
                                             </div>

@@ -51,27 +51,26 @@ const products = [
     originalPrice: 69999,
     rating: 4.6,
     reviews: 89,
-    image: 'https://res.cloudinary.com/dvkxgrcbv/image/upload/v1769148395/757fe43c-e4e9-4cf6-84b5-940a9c0184df.png', // Placeholder
-    category: 'Sofas',
+    image: 'https://res.cloudinary.com/dvkxgrcbv/image/upload/v1769148395/757fe43c-e4e9-4cf6-84b5-940a9c0184df.png',
+    category: 'Polyester Fabric Sofas',
     tag: 'Trending',
-    description: 'Sofas, or couches, are comfortable seating options for multiple people, commonly found in living rooms. Available in styles like sectionals, loveseats, and sleepers, they feature cushioned upholstery in leather, fabric, or velvet for style and relaxation.',
-    features: ['Teak wood & 18mm Plywood Frame', 'Duroflex Foam', 'Metal Legs'],
+    description: 'Expertly crafted polyester fabric sofa available in multiple seating options. Features high-quality upholstery and teak wood legs.',
+    features: ['Teak wood & 18mm Plywood Frame', 'Duroflex Foam', 'Teakwood Legs', 'Polyester Fabric'],
     specifications: [
-      { key: 'Size', value: '3 seater' },
-      { key: 'Colour', value: 'MERRY 738' },
+      { key: 'Colour', value: 'KEIBA 901' },
       { key: 'Frame material', value: 'Teak wood & 18mm Plywood' },
       { key: 'Upholstery Material', value: 'High quality Fabric' },
-      { key: 'Material', value: 'Leatherate' },
+      { key: 'Material', value: 'Polyester Fabric' },
       { key: 'Foam', value: 'Duroflex' },
-      { key: 'Legs', value: 'Metal' }
+      { key: 'Legs', value: 'Teakwood' }
     ],
-    colorOptions: ['MERRY 734', 'MERRY 705', 'MERRY 706'],
-    dimensions: {
-      length: 96,
-      width: 33,
-      height: 18,
-      unit: 'inch'
-    },
+    colorOptions: ['KEIBA 903', 'KEIBA 907'],
+    variants: [
+      { name: '1 seater', price: 18545, dimensions: '30 L × 33 W × 18 H' },
+      { name: '2 seater', price: 42000, dimensions: '72 L × 33 W × 18 H' },
+      { name: '3 seater', price: 56499, dimensions: '96 L × 33 W × 18 H' }
+    ],
+    dimensions: { length: 96, width: 33, height: 18, unit: 'inch' }, // Default 3 seater
     isActive: true,
     policies: {
       shipping: 'Directly from Factory/ Ware house, Delivered in multiple boxes',
@@ -79,6 +78,38 @@ const products = [
       cancellations: 'Since Upholstered sofa productions begins only after an order is placed. Cancellations are allowed free of charge only within first 24 hours of placing the order'
     },
     deliveryCondition: 'pre - Assembled'
+  },
+  {
+    name: 'L shape',
+    price: 91499,
+    originalPrice: 110000,
+    rating: 4.8,
+    reviews: 15,
+    image: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=500', // Placeholder
+    category: 'Leatherette Sofas',
+    description: 'Luxurious L-shaped leatherette sofa tailored for comfort and style.',
+    features: ['Teak wood & 18mm Plywood Frame', 'Duroflex Foam', 'Metal Legs', 'Leatherette Material'],
+    specifications: [
+      { key: 'Size', value: '3 seater + Lounger' },
+      { key: 'Colour', value: 'MERRY 703' },
+      { key: 'Frame material', value: 'Teak wood & 18mm Plywood' },
+      { key: 'Upholstery Material', value: 'High quality Fabric' }, // User said Fabric under Upholstery but Material Leatherette? sticking to request
+      { key: 'Material', value: 'Leatherette' },
+      { key: 'Foam', value: 'Duroflex' },
+      { key: 'Legs', value: 'Metal' }
+    ],
+    colorOptions: ['MERRY 705', 'MERRY 706', 'MERRY 734'],
+    dimensionDetails: [
+      { title: '3 Seater', items: [{ label: 'Dimensions', value: '84 L × 33 W × 18 H' }] },
+      { title: 'Lounger', items: [{ label: 'Dimensions', value: '78 L × 35 W × 18 H' }] }
+    ],
+    isActive: true,
+    policies: {
+      shipping: 'Directly from Factory/ Ware house, Delivered in multiple boxes',
+      warranty: '1 year Manufacturing Warranty',
+      cancellations: 'Since Upholstered sofa productions begins only after an order is placed. Cancellations are allowed free of charge only within first 24 hours of placing the order'
+    },
+    deliveryCondition: 'Expert Assembly (Within 4 days from delivery)'
   },
 
   // 3. CENTER TABLE (From User Data)
@@ -123,15 +154,17 @@ const products = [
     image: 'https://res.cloudinary.com/dvkxgrcbv/image/upload/v1769148528/98e95d84-e4c7-4417-95c4-bbbc6fa98bfb.png', // Placeholder
     category: 'Dining Tables',
     tag: 'Premium',
-    description: 'Dining tables are central furniture pieces for meals and gatherings, available in shapes like rectangular, round, or square. Made from wood, glass, or stone, they accommodate different seating capacities to suit homes and dining spaces.',
-    features: ['Premium Teak wood', 'Italian table top', 'Cushion chairs with teakwood Frame'],
+    description: 'Premium dining table set feautring teak wood construction and an Italian table top. Includes cushion chairs with teakwood frames.',
+    features: ['Premium Teak wood', 'Italian table top', 'Cushion chairs with teakwood Frame', 'Oval Shape'],
     specifications: [
-      { key: 'Option', value: '4 seater available at 75,993' },
       { key: 'Material', value: 'Teak wood' },
-      { key: 'Seater', value: '6 seater' },
       { key: 'Finish', value: 'Teak Finish' },
       { key: 'Shape', value: 'Oval' },
       { key: 'Chair Dimensions', value: '24 L × 19 W × 40 H' }
+    ],
+    variants: [
+      { name: '4 seater', price: 75993, dimensions: 'Contact Support for Sizes' },
+      { name: '6 seater', price: 84993, dimensions: '72 L × 36 W × 31 H' }
     ],
     dimensions: {
       length: 72,
@@ -203,23 +236,7 @@ const products = [
     isActive: true
   },
 
-  // 7. Polyester Fabric Sofa (Dummy)
-  {
-    name: 'Grey Polyester Sofa',
-    price: 28000,
-    originalPrice: 35000,
-    rating: 4.3,
-    reviews: 15,
-    image: 'https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?w=500',
-    category: 'Polyester Fabric Sofas',
-    description: 'Durable and stylish polyester sofa.',
-    features: ['Durable Fabric', 'Wooden Legs'],
-    specifications: [
-      { key: 'Fabric', value: 'Polyester' },
-      { key: 'Seating', value: '3 Seater' }
-    ],
-    isActive: true
-  },
+
 
   // 8. Chairs (Dummy)
   {

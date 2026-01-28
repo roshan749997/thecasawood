@@ -108,6 +108,13 @@ const productSchema = new mongoose.Schema({
   colorOptions: [{
     type: String
   }],
+  variants: [{
+    name: { type: String, required: true }, // e.g., "3 Seater", "1 Seater"
+    price: { type: Number, required: true },
+    originalPrice: Number,
+    dimensions: String,
+    image: String
+  }],
   deliveryCondition: {
     type: String
   },

@@ -15,6 +15,9 @@ const cartItemSchema = new mongoose.Schema({
   price: {
     type: Number,
     required: true
+  },
+  variantName: {
+    type: String // e.g., "3 Seater"
   }
 });
 

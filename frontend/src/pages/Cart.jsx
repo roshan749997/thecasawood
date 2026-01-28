@@ -202,6 +202,11 @@ const Cart = () => {
                                                                 <p className="text-xs text-gray-500 mt-1">
                                                                     Category: {productCategory} | Seller: CASAWOOD
                                                                 </p>
+                                                                {item.variantName && (
+                                                                    <div className="mt-1 inline-block px-2 py-0.5 bg-gray-100 text-xs font-medium text-gray-700 rounded border border-gray-200">
+                                                                        Size: {item.variantName}
+                                                                    </div>
+                                                                )}
                                                             </div>
                                                             <button
                                                                 onClick={() => removeItem(item._id || item.id)}
@@ -308,6 +313,11 @@ const Cart = () => {
 
                                                     <div className="flex-1">
                                                         <h3 className="text-base font-medium text-gray-900 mb-2 line-clamp-2">{productName}</h3>
+                                                        {item.variantName && (
+                                                            <div className="mb-2 inline-block px-2 py-0.5 bg-gray-100 text-xs font-medium text-gray-700 rounded border border-gray-200">
+                                                                Size: {item.variantName}
+                                                            </div>
+                                                        )}
                                                         <div className="flex items-center gap-3 mb-3">
                                                             <span className="text-xl font-bold text-gray-900">₹{productPrice.toLocaleString()}</span>
                                                             <span className="text-sm text-gray-500 line-through">₹{Math.round(productPrice * 1.25).toLocaleString()}</span>

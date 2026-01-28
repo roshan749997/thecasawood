@@ -109,21 +109,37 @@ router.post('/', optionalProtect, async (req, res) => {
       }
     }
 
-    // Check if item already exists in cart
+    // Determine price and variant
+    let finalPrice = product.price;
+    const { variantName } = req.body;
+
+    if (variantName) {
+      const variant = product.variants?.find(v => v.name === variantName);
+      if (variant) {
+        finalPrice = variant.price;
+      } else {
+        // If variant name passed but not found in product, safer to error or ignore
+        // ignoring for robustness, but ideally should match
+      }
+    }
+
+    // Check if item already exists in cart matching product AND variant
     const existingItemIndex = cart.items.findIndex(
-      item => item.product.toString() === productId
+      item => item.product.toString() === productId && item.variantName === variantName
     );
 
     if (existingItemIndex > -1) {
       // Update quantity
       cart.items[existingItemIndex].quantity += quantity;
-      cart.items[existingItemIndex].price = product.price;
+      // Update price in case it changed in DB
+      cart.items[existingItemIndex].price = finalPrice;
     } else {
       // Add new item
       cart.items.push({
         product: productId,
         quantity,
-        price: product.price
+        price: finalPrice,
+        variantName: variantName
       });
     }
 
@@ -287,7 +303,8 @@ router.post('/save-for-later/:itemId', optionalProtect, async (req, res) => {
     cart.savedForLater.push({
       product: item.product,
       quantity: item.quantity,
-      price: item.price
+      price: item.price,
+      variantName: item.variantName
     });
 
     cart.items.splice(itemIndex, 1);
@@ -345,16 +362,18 @@ router.post('/move-to-cart/:itemId', optionalProtect, async (req, res) => {
 
     // Check if already in cart
     const existingItemIndex = cart.items.findIndex(
-      cartItem => cartItem.product.toString() === item.product.toString()
+      cartItem => cartItem.product.toString() === item.product.toString() && cartItem.variantName === item.variantName
     );
 
     if (existingItemIndex > -1) {
       cart.items[existingItemIndex].quantity += item.quantity;
+      cart.items[existingItemIndex].price = item.price; // Update price?
     } else {
       cart.items.push({
         product: item.product,
         quantity: item.quantity,
-        price: item.price
+        price: item.price,
+        variantName: item.variantName
       });
     }
 

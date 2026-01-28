@@ -11,6 +11,22 @@ const ProductDetail = () => {
     const [product, setProduct] = useState(null)
     const [loading, setLoading] = useState(true)
     const [selectedImage, setSelectedImage] = useState(0)
+    const [selectedVariant, setSelectedVariant] = useState(null)
+    const [displayPrice, setDisplayPrice] = useState(0)
+
+    // Initialize variant and price when product loads
+    useEffect(() => {
+        if (product) {
+            if (product.variants && product.variants.length > 0) {
+                // Default to first variant
+                setSelectedVariant(product.variants[0])
+                setDisplayPrice(product.variants[0].price)
+            } else {
+                setSelectedVariant(null)
+                setDisplayPrice(product.price)
+            }
+        }
+    }, [product])
 
     const [quantity, setQuantity] = useState(1)
     const [isInWishlist, setIsInWishlist] = useState(false)
@@ -54,7 +70,11 @@ const ProductDetail = () => {
 
         try {
             setAddingToCart(true)
-            await cartAPI.add({ productId: id, quantity })
+            await cartAPI.add({
+                productId: id,
+                quantity,
+                variantName: selectedVariant?.name
+            })
             // Trigger cart update event
             window.dispatchEvent(new Event('cartUpdated'))
 
@@ -72,7 +92,12 @@ const ProductDetail = () => {
 
         try {
             setAddingToCart(true)
-            await cartAPI.add({ productId: id, quantity })
+            await cartAPI.add({
+                productId: id,
+                quantity,
+                variantName: selectedVariant?.name,
+                guestId: localStorage.getItem('guestId')
+            })
             // Trigger cart update event
             window.dispatchEvent(new Event('cartUpdated'))
             navigate('/cart')
@@ -268,6 +293,35 @@ const ProductDetail = () => {
                             )}
                         </div>
 
+                        {/* Variant/Size Selection */}
+                        {product.variants && product.variants.length > 0 && (
+                            <div className="mb-6">
+                                <div className="text-sm text-gray-900 font-medium mb-3">
+                                    Select Configuration: <span className="text-[#8b5e3c] font-bold">{selectedVariant?.name}</span>
+                                </div>
+                                <div className="flex flex-wrap gap-3">
+                                    {product.variants.map((variant, idx) => (
+                                        <button
+                                            key={idx}
+                                            onClick={() => {
+                                                setSelectedVariant(variant)
+                                                setDisplayPrice(variant.price)
+                                            }}
+                                            className={`relative px-6 py-3 border rounded-lg text-sm font-medium transition-all flex flex-col items-center justify-center min-w-[100px] ${selectedVariant?.name === variant.name
+                                                    ? 'border-[#8b5e3c] bg-[#fff8f5] text-[#8b5e3c] shadow-sm ring-1 ring-[#8b5e3c]'
+                                                    : 'border-gray-200 bg-white text-gray-600 hover:border-[#8b5e3c] hover:shadow-sm'
+                                                }`}
+                                        >
+                                            <span className="font-bold text-base">{variant.name}</span>
+                                            {variant.dimensions && (
+                                                <span className="text-[10px] text-gray-500 mt-1 opacity-80 hidden md:block">{variant.dimensions.split('×')[0]}...</span>
+                                            )}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
                         {/* Color Options */}
                         {(product.color || (product.colorOptions && product.colorOptions.length > 0)) && (
                             <div className="mb-4">
@@ -290,8 +344,8 @@ const ProductDetail = () => {
 
                         {/* Price */}
                         <div className="flex items-end gap-3 mb-4">
-                            <span className="text-3xl font-bold text-gray-900">₹{product.price.toLocaleString()}</span>
-                            <span className="text-gray-500 text-base line-through">₹{Math.round(product.price * 1.25).toLocaleString()}</span>
+                            <span className="text-3xl font-bold text-gray-900">₹{displayPrice?.toLocaleString() || product.price.toLocaleString()}</span>
+                            <span className="text-gray-500 text-base line-through">₹{Math.round((displayPrice || product.price) * 1.25).toLocaleString()}</span>
                             <span className="text-[#8b5e3c] text-base font-bold">25% off</span>
                         </div>
 
@@ -422,6 +476,18 @@ const ProductDetail = () => {
                                     <div className="mt-4">
                                         <div className="text-sm font-medium text-gray-800 mb-3 uppercase">Product Dimensions</div>
                                         <div className="border border-gray-200 rounded-sm">
+                                            {/* Show Selected Variant Dimensions Highlighted if available */}
+                                            {selectedVariant?.dimensions && (
+                                                <div className="bg-[#fff8f5] border-b border-[#8b5e3c]/20">
+                                                    <div className="grid grid-cols-3">
+                                                        <div className="p-3 text-sm font-medium text-[#8b5e3c] col-span-1">Selected Configuration</div>
+                                                        <div className="p-3 text-sm font-bold text-[#8b5e3c] col-span-2">
+                                                            {selectedVariant.dimensions}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
+
                                             {product.dimensionDetails.map((detail, idx) => (
                                                 <div key={idx} className="border-b border-gray-200 last:border-b-0">
                                                     {detail.title && (
@@ -440,14 +506,17 @@ const ProductDetail = () => {
                                         </div>
                                     </div>
                                 ) : (
-                                    product.dimensions && (product.dimensions.length || product.dimensions.width || typeof product.dimensions === 'string') && (
+                                    (selectedVariant?.dimensions || (product.dimensions && (product.dimensions.length || product.dimensions.width || typeof product.dimensions === 'string'))) && (
                                         <div>
                                             <div className="text-sm font-medium text-gray-800 mb-3 uppercase">Dimensions</div>
                                             <div className="border border-gray-200 rounded-sm">
-                                                {typeof product.dimensions === 'string' ? (
+                                                {/* Priority: Selected Variant String -> Product String -> Product Object */}
+                                                {(selectedVariant?.dimensions || typeof product.dimensions === 'string') ? (
                                                     <div className="grid grid-cols-3 border-b border-gray-200 last:border-b-0">
                                                         <div className="p-3 text-sm text-gray-500 col-span-1">Dimensions</div>
-                                                        <div className="p-3 text-sm text-gray-800 col-span-2">{product.dimensions}</div>
+                                                        <div className="p-3 text-sm text-gray-800 col-span-2 font-medium">
+                                                            {selectedVariant?.dimensions || product.dimensions}
+                                                        </div>
                                                     </div>
                                                 ) : (
                                                     <>

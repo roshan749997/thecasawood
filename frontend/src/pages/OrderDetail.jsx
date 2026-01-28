@@ -108,34 +108,84 @@ const OrderDetail = () => {
 
                         {/* Track Order Status */}
                         <div className="bg-white rounded-lg shadow-sm p-6">
-                            <h2 className="font-semibold text-gray-900 mb-4">Order Status</h2>
-                            {/* Simple Status Steps */}
-                            <div className="relative">
-                                <div className="absolute left-0 top-1/2 w-full h-1 bg-gray-200 -z-10 transform -translate-y-1/2 hidden md:block"></div>
-                                <div className="flex flex-col md:flex-row justify-between gap-4 md:gap-0">
-                                    {['Ordered', 'Processing', 'Shipped', 'Delivered'].map((step, i) => {
-                                        // Mock status logic
-                                        const currentStatus = order.orderStatus || 'confirmed';
-                                        // Map status string to index for simplicity
-                                        const statusMap = { 'pending': 0, 'confirmed': 0, 'processing': 1, 'shipped': 2, 'delivered': 3 };
-                                        const currentIndex = statusMap[currentStatus.toLowerCase()] || 0;
-                                        const active = i <= currentIndex;
+                            <h2 className="font-semibold text-gray-900 mb-6 flex items-center gap-2">
+                                <svg className="w-5 h-5 text-[#8b5e3c]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                Order Status
+                            </h2>
+
+                            {/* Simplified Status Stepper */}
+                            <div className="relative pl-4 md:pl-0 mt-8 mb-4">
+                                {/* Desktop Line */}
+                                <div className="hidden md:block absolute top-[11px] left-0 w-full h-[2px] bg-gray-200 -z-10"></div>
+                                {/* Mobile Line */}
+                                <div className="md:hidden absolute left-[11px] top-0 h-full w-[2px] bg-gray-200 -z-10"></div>
+
+                                <div className="flex flex-col md:flex-row justify-between h-full gap-8 md:gap-0">
+                                    {[
+                                        { key: 'confirmed', label: 'Ordered', date: order.createdAt },
+                                        { key: 'processing', label: 'Processing', date: null }, // Usually no specific date for processing start visible to user
+                                        { key: 'shipped', label: 'Shipped', date: null },
+                                        { key: 'delivered', label: 'Delivered', date: order.deliveredOn || order.estimatedDelivery }
+                                    ].map((step, i) => {
+                                        // Status Logic
+                                        const currentStatus = (order.orderStatus || 'confirmed').toLowerCase();
+                                        const statusOrder = ['pending', 'confirmed', 'processing', 'shipped', 'delivered'];
+
+                                        // Find indices
+                                        const currentIdx = statusOrder.indexOf(currentStatus === 'ordered' ? 'confirmed' : currentStatus);
+                                        const stepIdx = statusOrder.indexOf(step.key);
+
+                                        const isCompleted = currentIdx > stepIdx;
+                                        const isCurrent = currentIdx === stepIdx;
+                                        const isUpcoming = currentIdx < stepIdx;
 
                                         return (
-                                            <div key={step} className="flex md:flex-col items-center gap-3 md:gap-2 bg-white md:bg-transparent p-2 md:p-0">
-                                                <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${active ? 'bg-[#8b5e3c] border-[#8b5e3c] text-white' : 'bg-white border-gray-300 text-gray-300'}`}>
-                                                    {active ? (
-                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" /></svg>
-                                                    ) : (
-                                                        <span className="text-xs">{i + 1}</span>
+                                            <div key={step.key} className="flex md:flex-col items-center gap-4 md:gap-2">
+                                                {/* Dot/Indicator */}
+                                                <div className={`w-6 h-6 rounded-full flex items-center justify-center border-2 bg-white z-10 
+                                                    ${(isCompleted || isCurrent) ? 'border-[#8b5e3c]' : 'border-gray-300'}`}>
+
+                                                    {isCompleted && (
+                                                        <div className="w-3 h-3 bg-[#8b5e3c] rounded-full"></div>
+                                                    )}
+                                                    {isCurrent && (
+                                                        <div className="w-3 h-3 bg-[#8b5e3c] rounded-full animate-pulse"></div>
+                                                    )}
+                                                    {isUpcoming && (
+                                                        <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
                                                     )}
                                                 </div>
-                                                <span className={`text-sm font-medium ${active ? 'text-[#8b5e3c]' : 'text-gray-500'}`}>{step}</span>
+
+                                                {/* Text Info */}
+                                                <div className="md:text-center">
+                                                    <p className={`text-sm font-bold ${isUpcoming ? 'text-gray-400' : 'text-gray-900'}`}>
+                                                        {step.label}
+                                                    </p>
+                                                    {step.date && (isCompleted || isCurrent || step.key === 'delivered') && (
+                                                        <p className="text-xs text-gray-500 mt-0.5">
+                                                            {new Date(step.date).toLocaleDateString('en-IN', {
+                                                                day: 'numeric', month: 'short'
+                                                            })}
+                                                        </p>
+                                                    )}
+                                                </div>
                                             </div>
                                         )
                                     })}
                                 </div>
                             </div>
+
+                            {/* Tracking Number or Extra Info */}
+                            {order.trackingNumber && (
+                                <div className="mt-6 pt-4 border-t border-gray-100">
+                                    <p className="text-sm text-gray-600">
+                                        Tracking Number: <span className="font-medium text-gray-900 ml-1">{order.trackingNumber}</span>
+                                    </p>
+                                </div>
+                            )}
+
                         </div>
                     </div>
 

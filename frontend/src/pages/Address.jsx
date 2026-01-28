@@ -1,41 +1,29 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { addressesAPI } from '../services/api'
+import { addressesAPI, cartAPI, paymentAPI, ordersAPI } from '../services/api'
 import { useAuth } from '../context/AuthContext'
 
 const Address = () => {
+    // ==========================================
+    // 1. Hooks & State Management
+    // ==========================================
     const navigate = useNavigate()
-    const { isAuthenticated } = useAuth()
-    const [selectedAddress, setSelectedAddress] = useState(null)
+    const { isAuthenticated, user } = useAuth()
+
+    // Status States
+    const [loading, setLoading] = useState(true)
+    const [processing, setProcessing] = useState(false) // For payment processing
+
+    // Data States
+    const [addresses, setAddresses] = useState([])
+    const [cartData, setCartData] = useState(null)
+
+    // UI Selection States
+    const [selectedAddressId, setSelectedAddressId] = useState(null) // Renamed for clarity
     const [showAddressForm, setShowAddressForm] = useState(false)
     const [editingAddress, setEditingAddress] = useState(null)
-    const [addresses, setAddresses] = useState([])
-    const [loading, setLoading] = useState(true)
 
-    // Fetch addresses from API
-    useEffect(() => {
-        if (!isAuthenticated) {
-            navigate('/')
-            return
-        }
-
-        const fetchAddresses = async () => {
-            try {
-                setLoading(true)
-                const response = await addressesAPI.getAll()
-                if (response.data.success) {
-                    setAddresses(response.data.data || [])
-                }
-            } catch (error) {
-                console.error('Error fetching addresses:', error)
-            } finally {
-                setLoading(false)
-            }
-        }
-
-        fetchAddresses()
-    }, [isAuthenticated, navigate])
-
+    // Form Data State
     const [formData, setFormData] = useState({
         name: '',
         phone: '',
@@ -47,11 +35,60 @@ const Address = () => {
         type: 'Home'
     })
 
+    // ==========================================
+    // 2. Data Fetching
+    // ==========================================
+    useEffect(() => {
+        if (!isAuthenticated) {
+            navigate('/')
+            return
+        }
+
+        const fetchData = async () => {
+            try {
+                setLoading(true)
+                const [addressRes, cartRes] = await Promise.all([
+                    addressesAPI.getAll(),
+                    cartAPI.get()
+                ])
+
+                if (addressRes.data.success) {
+                    setAddresses(addressRes.data.data || [])
+                    // Auto-select default address if user hasn't selected one
+                    const defaultAddr = addressRes.data.data.find(a => a.isDefault) || addressRes.data.data[0]
+                    if (defaultAddr) setSelectedAddressId(defaultAddr._id || defaultAddr.id)
+                }
+
+                if (cartRes.data.success) {
+                    setCartData(cartRes.data.data)
+                }
+            } catch (error) {
+                console.error('Error fetching data:', error)
+            } finally {
+                setLoading(false)
+            }
+        }
+
+        fetchData()
+    }, [isAuthenticated, navigate])
+
+    // ==========================================
+    // 3. Address Form Handlers
+    // ==========================================
     const handleInputChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value })
     }
 
-    const handleSubmit = async (e) => {
+    const resetForm = () => {
+        setFormData({
+            name: '', phone: '', pincode: '', address: '',
+            locality: '', city: '', state: '', type: 'Home'
+        })
+        setEditingAddress(null)
+        setShowAddressForm(false)
+    }
+
+    const handleAddressSubmit = async (e) => {
         e.preventDefault()
         try {
             if (editingAddress) {
@@ -60,7 +97,7 @@ const Address = () => {
                     setAddresses(addresses.map(addr =>
                         addr._id === editingAddress._id ? response.data.data : addr
                     ))
-                    setEditingAddress(null)
+                    resetForm()
                 }
             } else {
                 const response = await addressesAPI.create({
@@ -70,25 +107,17 @@ const Address = () => {
                 })
                 if (response.data.success) {
                     setAddresses([...addresses, response.data.data])
+                    // Auto select the new address
+                    setSelectedAddressId(response.data.data._id || response.data.data.id)
+                    resetForm()
                 }
             }
-            setFormData({
-                name: '',
-                phone: '',
-                pincode: '',
-                address: '',
-                locality: '',
-                city: '',
-                state: '',
-                type: 'Home'
-            })
-            setShowAddressForm(false)
         } catch (error) {
             alert(error.response?.data?.message || 'Failed to save address')
         }
     }
 
-    const handleEdit = (address) => {
+    const startEditing = (address) => {
         setFormData({
             name: address.name,
             phone: address.phone,
@@ -103,411 +132,369 @@ const Address = () => {
         setShowAddressForm(true)
     }
 
-    const handleDelete = async (id) => {
-        if (!window.confirm('Are you sure you want to delete this address?')) {
-            return
-        }
+    const handleDeleteAddress = async (id, e) => {
+        e.stopPropagation() // Prevent selecting the address when clicking delete
+        if (!window.confirm('Are you sure you want to delete this address?')) return
 
         try {
             await addressesAPI.delete(id)
             setAddresses(addresses.filter(addr => (addr._id || addr.id) !== id))
-            if (selectedAddress === id) setSelectedAddress(null)
+            if (selectedAddressId === id) setSelectedAddressId(null)
         } catch (error) {
             alert(error.response?.data?.message || 'Failed to delete address')
         }
     }
 
-    const handleContinue = () => {
-        if (selectedAddress) {
-            navigate('/payment', { state: { addressId: selectedAddress } })
+    // ==========================================
+    // 4. Payment Handlers
+    // ==========================================
+    const loadRazorpayScript = () => {
+        return new Promise((resolve) => {
+            const script = document.createElement('script')
+            script.src = 'https://checkout.razorpay.com/v1/checkout.js'
+            script.onload = () => resolve(true)
+            script.onerror = () => resolve(false)
+            document.body.appendChild(script)
+        })
+    }
+
+    const handleOnlinePayment = async () => {
+        if (!selectedAddressId) {
+            alert('Please select a delivery address first')
+            return
+        }
+
+        const isScriptLoaded = await loadRazorpayScript()
+        if (!isScriptLoaded) {
+            alert('Razorpay SDK failed to load. Please check your internet connection.')
+            return
+        }
+
+        try {
+            setProcessing(true)
+
+            // Step 1: Create Order on Backend
+            const { data: { key } } = await paymentAPI.getKey()
+            const { data: orderData } = await paymentAPI.createOrder({
+                shippingAddressId: selectedAddressId,
+                billingAddressId: selectedAddressId
+            })
+
+            if (!orderData.success) throw new Error('Failed to create order')
+
+            // Step 2: Initialize Razorpay
+            const options = {
+                key: key,
+                amount: orderData.order.amount,
+                currency: "INR",
+                name: "The Casawood",
+                description: "Furniture Purchase",
+                image: "https://thecasawood.com/logo.png",
+                order_id: orderData.order.id,
+                handler: async function (response) {
+                    try {
+                        // Step 3: Verify Payment on Backend
+                        const verifyData = {
+                            razorpay_order_id: response.razorpay_order_id,
+                            razorpay_payment_id: response.razorpay_payment_id,
+                            razorpay_signature: response.razorpay_signature,
+                            shippingAddressId: selectedAddressId,
+                            billingAddressId: selectedAddressId
+                        }
+
+                        const { data: result } = await paymentAPI.verify(verifyData)
+
+                        if (result.success) {
+                            window.dispatchEvent(new Event('cartUpdated'))
+                            navigate(`/order-success/${result.data._id}`)
+                        } else {
+                            alert('Payment verification failed')
+                        }
+                    } catch (error) {
+                        console.error('Payment verification error:', error)
+                        alert('Payment verification failed. Please contact support.')
+                    }
+                },
+                prefill: {
+                    name: user?.name,
+                    email: user?.email,
+                    contact: user?.phone
+                },
+                theme: { color: "#8b5e3c" },
+                modal: {
+                    ondismiss: () => {
+                        alert('Payment cancelled')
+                        setProcessing(false)
+                    }
+                }
+            }
+
+            const razorpayInstance = new window.Razorpay(options)
+            razorpayInstance.open()
+
+        } catch (error) {
+            console.error('Payment initialization error:', error)
+            alert(error.response?.data?.message || 'Payment initialization failed')
+            setProcessing(false)
         }
     }
 
+    const handleCODPayment = async () => {
+        if (!selectedAddressId) {
+            alert('Please select a delivery address first')
+            return
+        }
+
+        try {
+            setProcessing(true)
+            const response = await ordersAPI.create({
+                shippingAddressId: selectedAddressId,
+                paymentMethod: 'COD'
+            })
+
+            if (response.data.success) {
+                window.dispatchEvent(new Event('cartUpdated'))
+                navigate(`/order-success/${response.data.data._id}`)
+            }
+        } catch (error) {
+            alert(error.response?.data?.message || 'Failed to place order')
+        } finally {
+            setProcessing(false)
+        }
+    }
+
+    // ==========================================
+    // 5. Calculations
+    // ==========================================
+    const items = cartData?.items || []
+    const subtotal = items.reduce((sum, item) => sum + ((item.product?.price || item.price) * item.quantity), 0)
+    const deliveryCharges = subtotal > 50000 ? 0 : 500
+    const totalAmount = subtotal + deliveryCharges
+
+    // ==========================================
+    // 6. Component Renders
+    // ==========================================
+
+    if (loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gray-50">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#8b5e3c]"></div>
+            </div>
+        )
+    }
+
     return (
-        <div className="bg-gray-100 min-h-screen py-4 md:py-6">
-            <div className="max-w-[1400px] mx-auto px-4">
-                {/* Breadcrumb */}
-                <div className="flex items-center text-sm text-gray-500 mb-4 gap-2">
-                    <Link to="/cart" className="hover:text-[#8b5e3c]">Cart</Link>
-                    <span>›</span>
-                    <span className="text-gray-900 font-medium">Delivery Address</span>
-                    <span>›</span>
-                    <span className="text-gray-400">Payment</span>
+        <div className="bg-gray-100 min-h-screen py-8">
+            <div className="max-w-6xl mx-auto px-4">
+
+                {/* Header / Breadcrumbs */}
+                <div className="flex items-center text-sm text-gray-500 mb-6 font-medium">
+                    <Link to="/cart" className="hover:text-[#8b5e3c] transition-colors">Cart</Link>
+                    <span className="mx-2">›</span>
+                    <span className="text-gray-900">Checkout</span>
                 </div>
 
-                <div className="flex flex-col lg:flex-row gap-4">
-                    {/* Left Column - Addresses */}
-                    <div className="flex-1">
-                        {/* Add New Address Button */}
-                        {!showAddressForm && (
-                            <div className="bg-white rounded-sm shadow-sm mb-4">
-                                <button
-                                    onClick={() => setShowAddressForm(true)}
-                                    className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
-                                >
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 bg-[#8b5e3c] rounded-full flex items-center justify-center text-white">
-                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
-                                            </svg>
-                                        </div>
-                                        <span className="text-base font-semibold text-[#8b5e3c] uppercase tracking-wide">
-                                            Add a New Address
-                                        </span>
-                                    </div>
-                                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-                                    </svg>
-                                </button>
-                            </div>
-                        )}
+                <div className="flex flex-col lg:flex-row gap-8">
 
-                        {/* Address Form */}
-                        {showAddressForm && (
-                            <div className="bg-white rounded-sm shadow-sm mb-4">
-                                <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-                                    <h2 className="text-lg font-semibold text-gray-900">
-                                        {editingAddress ? 'Edit Address' : 'Add New Address'}
-                                    </h2>
+                    {/* Left Column: Checkout Steps */}
+                    <div className="flex-1 space-y-6">
+
+                        {/* ---------------- STEP 1: ADDRESS ---------------- */}
+                        <section className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
+                            <div className="bg-gray-50 px-6 py-4 flex justify-between items-center border-b border-gray-100">
+                                <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                                    <span className="flex items-center justify-center w-6 h-6 bg-[#8b5e3c] text-white text-xs rounded-full">1</span>
+                                    Select Delivery Address
+                                </h2>
+                                {!showAddressForm && (
                                     <button
-                                        onClick={() => {
-                                            setShowAddressForm(false)
-                                            setEditingAddress(null)
-                                            setFormData({
-                                                name: '',
-                                                phone: '',
-                                                pincode: '',
-                                                address: '',
-                                                locality: '',
-                                                city: '',
-                                                state: '',
-                                                type: 'Home'
-                                            })
-                                        }}
-                                        className="text-gray-400 hover:text-gray-600"
+                                        onClick={() => setShowAddressForm(true)}
+                                        className="text-[#8b5e3c] text-sm font-bold uppercase hover:underline"
                                     >
-                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                                        </svg>
+                                        + Add New Address
                                     </button>
-                                </div>
-
-                                <form onSubmit={handleSubmit} className="p-6">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                Full Name <span className="text-red-500">*</span>
-                                            </label>
-                                            <input
-                                                type="text"
-                                                name="name"
-                                                value={formData.name}
-                                                onChange={handleInputChange}
-                                                required
-                                                className="w-full px-4 py-2.5 border border-gray-300 rounded-sm text-sm focus:outline-none focus:ring-2 focus:ring-[#8b5e3c] focus:border-transparent"
-                                                placeholder="Enter your full name"
-                                            />
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                Phone Number <span className="text-red-500">*</span>
-                                            </label>
-                                            <input
-                                                type="tel"
-                                                name="phone"
-                                                value={formData.phone}
-                                                onChange={handleInputChange}
-                                                required
-                                                maxLength="10"
-                                                className="w-full px-4 py-2.5 border border-gray-300 rounded-sm text-sm focus:outline-none focus:ring-2 focus:ring-[#8b5e3c] focus:border-transparent"
-                                                placeholder="10-digit mobile number"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                Pincode <span className="text-red-500">*</span>
-                                            </label>
-                                            <input
-                                                type="text"
-                                                name="pincode"
-                                                value={formData.pincode}
-                                                onChange={handleInputChange}
-                                                required
-                                                maxLength="6"
-                                                className="w-full px-4 py-2.5 border border-gray-300 rounded-sm text-sm focus:outline-none focus:ring-2 focus:ring-[#8b5e3c] focus:border-transparent"
-                                                placeholder="6-digit pincode"
-                                            />
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                Locality <span className="text-red-500">*</span>
-                                            </label>
-                                            <input
-                                                type="text"
-                                                name="locality"
-                                                value={formData.locality}
-                                                onChange={handleInputChange}
-                                                required
-                                                className="w-full px-4 py-2.5 border border-gray-300 rounded-sm text-sm focus:outline-none focus:ring-2 focus:ring-[#8b5e3c] focus:border-transparent"
-                                                placeholder="Locality/Area"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className="mb-4">
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                                            Address (House No, Building, Street) <span className="text-red-500">*</span>
-                                        </label>
-                                        <textarea
-                                            name="address"
-                                            value={formData.address}
-                                            onChange={handleInputChange}
-                                            required
-                                            rows="3"
-                                            className="w-full px-4 py-2.5 border border-gray-300 rounded-sm text-sm focus:outline-none focus:ring-2 focus:ring-[#8b5e3c] focus:border-transparent resize-none"
-                                            placeholder="Enter complete address"
-                                        />
-                                    </div>
-
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                City/District <span className="text-red-500">*</span>
-                                            </label>
-                                            <input
-                                                type="text"
-                                                name="city"
-                                                value={formData.city}
-                                                onChange={handleInputChange}
-                                                required
-                                                className="w-full px-4 py-2.5 border border-gray-300 rounded-sm text-sm focus:outline-none focus:ring-2 focus:ring-[#8b5e3c] focus:border-transparent"
-                                                placeholder="City"
-                                            />
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                State <span className="text-red-500">*</span>
-                                            </label>
-                                            <input
-                                                type="text"
-                                                name="state"
-                                                value={formData.state}
-                                                onChange={handleInputChange}
-                                                required
-                                                className="w-full px-4 py-2.5 border border-gray-300 rounded-sm text-sm focus:outline-none focus:ring-2 focus:ring-[#8b5e3c] focus:border-transparent"
-                                                placeholder="State"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className="mb-6">
-                                        <label className="block text-sm font-medium text-gray-700 mb-3">
-                                            Address Type
-                                        </label>
-                                        <div className="flex gap-4">
-                                            {['Home', 'Work'].map((type) => (
-                                                <label key={type} className="flex items-center cursor-pointer">
-                                                    <input
-                                                        type="radio"
-                                                        name="type"
-                                                        value={type}
-                                                        checked={formData.type === type}
-                                                        onChange={handleInputChange}
-                                                        className="form-radio h-4 w-4 text-[#8b5e3c] border-gray-300 focus:ring-[#8b5e3c]"
-                                                    />
-                                                    <span className="ml-2 text-sm text-gray-700">{type}</span>
-                                                </label>
-                                            ))}
-                                        </div>
-                                    </div>
-
-                                    <div className="flex gap-3">
-                                        <button
-                                            type="submit"
-                                            className="flex-1 py-3 bg-[#5c4033] text-white font-bold uppercase rounded-sm hover:bg-[#3e2b22] transition-colors shadow-md"
-                                        >
-                                            {editingAddress ? 'Update Address' : 'Save Address'}
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                setShowAddressForm(false)
-                                                setEditingAddress(null)
-                                            }}
-                                            className="px-6 py-3 border border-gray-300 text-gray-700 font-semibold rounded-sm hover:bg-gray-50 transition-colors"
-                                        >
-                                            Cancel
-                                        </button>
-                                    </div>
-                                </form>
+                                )}
                             </div>
-                        )}
 
-                        {/* Saved Addresses */}
-                        {addresses.length > 0 && !showAddressForm && (
-                            <div className="bg-white rounded-sm shadow-sm">
-                                <div className="px-6 py-4 border-b border-gray-200">
-                                    <h2 className="text-lg font-semibold text-gray-900">
-                                        Select Delivery Address
-                                    </h2>
-                                </div>
+                            <div className="p-6">
+                                {showAddressForm ? (
+                                    // -------- FORM VIEW --------
+                                    <form onSubmit={handleAddressSubmit} className="space-y-4 animate-fadeIn">
+                                        <div className="flex justify-between items-center mb-4">
+                                            <h3 className="font-medium text-gray-700">{editingAddress ? 'Edit Address' : 'New Address'}</h3>
+                                            <button type="button" onClick={resetForm} className="text-gray-400 hover:text-gray-600">✕ Cancel</button>
+                                        </div>
 
-                                {loading ? (
-                                    <div className="flex items-center justify-center py-20">
-                                        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#8b5e3c]"></div>
-                                    </div>
-                                ) : addresses.length === 0 ? (
-                                    <div className="text-center py-12">
-                                        <p className="text-gray-500 mb-4">No addresses saved</p>
-                                        <button
-                                            onClick={() => setShowAddressForm(true)}
-                                            className="px-6 py-2 bg-[#8b5e3c] text-white rounded-lg hover:bg-[#70482d]"
-                                        >
-                                            Add Address
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <input type="text" name="name" placeholder="Full Name *" value={formData.name} onChange={handleInputChange} required className="input-field p-3 border rounded w-full focus:ring-1 focus:ring-[#8b5e3c] outline-none" />
+                                            <input type="tel" name="phone" placeholder="Phone Number *" value={formData.phone} onChange={handleInputChange} required maxLength="10" className="input-field p-3 border rounded w-full focus:ring-1 focus:ring-[#8b5e3c] outline-none" />
+                                        </div>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <input type="text" name="pincode" placeholder="Pincode *" value={formData.pincode} onChange={handleInputChange} required maxLength="6" className="input-field p-3 border rounded w-full focus:ring-1 focus:ring-[#8b5e3c] outline-none" />
+                                            <input type="text" name="locality" placeholder="Locality / Area *" value={formData.locality} onChange={handleInputChange} required className="input-field p-3 border rounded w-full focus:ring-1 focus:ring-[#8b5e3c] outline-none" />
+                                        </div>
+
+                                        <textarea name="address" placeholder="Address (House No, Building, Street) *" value={formData.address} onChange={handleInputChange} required rows="3" className="input-field p-3 border rounded w-full focus:ring-1 focus:ring-[#8b5e3c] outline-none resize-none" />
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <input type="text" name="city" placeholder="City / District *" value={formData.city} onChange={handleInputChange} required className="input-field p-3 border rounded w-full focus:ring-1 focus:ring-[#8b5e3c] outline-none" />
+                                            <input type="text" name="state" placeholder="State *" value={formData.state} onChange={handleInputChange} required className="input-field p-3 border rounded w-full focus:ring-1 focus:ring-[#8b5e3c] outline-none" />
+                                        </div>
+
+                                        <div className="flex gap-4 pt-2">
+                                            <label className="flex items-center cursor-pointer">
+                                                <input type="radio" name="type" value="Home" checked={formData.type === 'Home'} onChange={handleInputChange} className="text-[#8b5e3c] focus:ring-[#8b5e3c]" />
+                                                <span className="ml-2 text-sm text-gray-700">Home</span>
+                                            </label>
+                                            <label className="flex items-center cursor-pointer">
+                                                <input type="radio" name="type" value="Work" checked={formData.type === 'Work'} onChange={handleInputChange} className="text-[#8b5e3c] focus:ring-[#8b5e3c]" />
+                                                <span className="ml-2 text-sm text-gray-700">Work</span>
+                                            </label>
+                                        </div>
+
+                                        <button type="submit" className="w-full bg-[#8b5e3c] text-white font-bold py-3 rounded hover:bg-[#70482d] transition-colors mt-4">
+                                            SAVE ADDRESS
                                         </button>
-                                    </div>
+                                    </form>
                                 ) : (
-                                    <div className="divide-y divide-gray-100">
-                                        {addresses.map((address) => {
-                                            const addressId = address._id || address.id
-                                            return (
-                                                <div
-                                                    key={addressId}
-                                                    className={`p-6 hover:bg-gray-50 transition-colors cursor-pointer ${selectedAddress === addressId ? 'bg-[#8b5e3c]/5 border-l-4 border-[#8b5e3c]' : ''
-                                                        }`}
-                                                    onClick={() => setSelectedAddress(addressId)}
-                                                >
-                                                    <div className="flex gap-4">
-                                                        {/* Radio Button */}
-                                                        <div className="flex-shrink-0 pt-1">
-                                                            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${selectedAddress === addressId ? 'border-[#8b5e3c]' : 'border-gray-300'
-                                                                }`}>
-                                                                {selectedAddress === addressId && (
-                                                                    <div className="w-3 h-3 rounded-full bg-[#8b5e3c]"></div>
-                                                                )}
+                                    // -------- LIST VIEW --------
+                                    <div className="grid grid-cols-1 gap-4">
+                                        {addresses.length === 0 ? (
+                                            <div className="text-center py-8 text-gray-500">
+                                                <p>No addresses saved yet.</p>
+                                                <button onClick={() => setShowAddressForm(true)} className="mt-2 text-[#8b5e3c] font-medium hover:underline">Add one now</button>
+                                            </div>
+                                        ) : (
+                                            addresses.map(addr => {
+                                                const addrId = addr._id || addr.id
+                                                return (
+                                                    <div
+                                                        key={addrId}
+                                                        onClick={() => setSelectedAddressId(addrId)}
+                                                        className={`border rounded-lg p-4 cursor-pointer transition-all relative group ${selectedAddressId === addrId
+                                                            ? 'border-[#8b5e3c] bg-[#8b5e3c]/5 shadow-sm ring-1 ring-[#8b5e3c]'
+                                                            : 'border-gray-200 hover:border-gray-300'
+                                                            }`}
+                                                    >
+                                                        <div className="flex items-start gap-3">
+                                                            <div className={`mt-1 w-5 h-5 rounded-full border flex items-center justify-center ${selectedAddressId === addrId ? 'border-[#8b5e3c]' : 'border-gray-300'}`}>
+                                                                {selectedAddressId === addrId && <div className="w-3 h-3 bg-[#8b5e3c] rounded-full" />}
                                                             </div>
-                                                        </div>
-
-                                                        {/* Address Details */}
-                                                        <div className="flex-1">
-                                                            <div className="flex items-start justify-between mb-2">
-                                                                <div className="flex items-center gap-2">
-                                                                    <h3 className="text-base font-semibold text-gray-900">{address.name}</h3>
-                                                                    <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs font-medium rounded uppercase">
-                                                                        {address.type}
-                                                                    </span>
-                                                                    {address.isDefault && (
-                                                                        <span className="px-2 py-0.5 bg-[#8b5e3c] text-white text-xs font-medium rounded">
-                                                                            Default
-                                                                        </span>
-                                                                    )}
+                                                            <div className="flex-1">
+                                                                <div className="flex justify-between items-center mb-1">
+                                                                    <div className="flex items-center gap-2">
+                                                                        <span className="font-semibold text-gray-800">{addr.name}</span>
+                                                                        <span className="px-2 py-0.5 bg-gray-200 text-gray-600 text-[10px] font-bold uppercase rounded">{addr.type}</span>
+                                                                    </div>
+                                                                    {/* Edit/Delete Buttons (Visible on Hover/Selected) */}
+                                                                    <div className="flex gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                        <button onClick={(e) => { e.stopPropagation(); startEditing(addr); }} className="text-blue-600 text-sm hover:underline font-medium">Edit</button>
+                                                                        <button onClick={(e) => handleDeleteAddress(addrId, e)} className="text-red-500 text-sm hover:underline font-medium">Delete</button>
+                                                                    </div>
                                                                 </div>
-                                                            </div>
-
-                                                            <p className="text-sm text-gray-700 mb-1">{address.addressLine1 || address.address}</p>
-                                                            {address.addressLine2 && (
-                                                                <p className="text-sm text-gray-700 mb-1">{address.addressLine2}</p>
-                                                            )}
-                                                            <p className="text-sm text-gray-700 mb-2">
-                                                                {address.city}, {address.state} - {address.pincode}
-                                                            </p>
-                                                            <p className="text-sm text-gray-600 mb-4">
-                                                                Mobile: <span className="font-medium text-gray-900">{address.phone}</span>
-                                                            </p>
-
-                                                            {/* Action Buttons */}
-                                                            <div className="flex gap-4">
-                                                                <button
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation()
-                                                                        handleEdit(address)
-                                                                    }}
-                                                                    className="text-sm font-medium text-[#8b5e3c] hover:text-[#70482d] transition-colors"
-                                                                >
-                                                                    EDIT
-                                                                </button>
-                                                                <button
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation()
-                                                                        handleDelete(addressId)
-                                                                    }}
-                                                                    className="text-sm font-medium text-gray-700 hover:text-red-500 transition-colors"
-                                                                >
-                                                                    REMOVE
-                                                                </button>
+                                                                <p className="text-sm text-gray-600 leading-relaxed">
+                                                                    {addr.addressLine1 || addr.address}, {addr.addressLine2 && `${addr.addressLine2}, `}
+                                                                    {addr.city}, {addr.state} - <span className="font-medium text-gray-800">{addr.pincode}</span>
+                                                                </p>
+                                                                <p className="text-sm text-gray-600 mt-1">
+                                                                    Mobile: <span className="font-medium text-gray-800">{addr.phone}</span>
+                                                                </p>
                                                             </div>
                                                         </div>
                                                     </div>
-                                                </div>
-                                            )
-                                        })}
+                                                )
+                                            })
+                                        )}
                                     </div>
                                 )}
-
-                                {/* Deliver Here Button - Mobile */}
-                                <div className="lg:hidden p-4 border-t border-gray-200">
-                                    <button
-                                        onClick={handleContinue}
-                                        disabled={!selectedAddress}
-                                        className={`w-full py-3 font-bold uppercase rounded-sm transition-colors shadow-md ${selectedAddress
-                                            ? 'bg-[#5c4033] text-white hover:bg-[#3e2b22]'
-                                            : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                                            }`}
-                                    >
-                                        Deliver Here
-                                    </button>
-                                </div>
                             </div>
-                        )}
-                    </div>
+                        </section>
 
-                    {/* Right Column - Order Summary (Sticky) */}
-                    <div className="lg:w-[380px] flex-shrink-0">
-                        <div className="bg-white rounded-sm shadow-sm sticky top-20">
-                            <div className="px-6 py-4 border-b border-gray-200">
-                                <h2 className="text-lg font-semibold text-gray-500 uppercase tracking-wide">Order Summary</h2>
+                        {/* ---------------- STEP 2: PAYMENT ---------------- */}
+                        <section className={`bg-white rounded-lg shadow-sm border border-gray-100 transition-opacity ${!selectedAddressId ? 'opacity-50 pointer-events-none grayscale' : 'opacity-100'}`}>
+                            <div className="bg-gray-50 px-6 py-4 border-b border-gray-100">
+                                <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                                    <span className="flex items-center justify-center w-6 h-6 bg-[#8b5e3c] text-white text-xs rounded-full">2</span>
+                                    Payment Method
+                                </h2>
                             </div>
 
-                            <div className="p-6 space-y-4">
-                                <div className="flex justify-between text-base">
-                                    <span className="text-gray-700">Items (3)</span>
-                                    <span className="font-medium text-gray-900">₹98,998</span>
-                                </div>
+                            <div className="p-6">
+                                {!selectedAddressId && <p className="text-sm text-red-500 mb-4">* Select an address above to proceed</p>}
 
-                                <div className="flex justify-between text-base">
-                                    <span className="text-gray-700">Delivery</span>
-                                    <span className="font-medium text-[#8b5e3c]">FREE</span>
-                                </div>
+                                <div className="space-y-4">
+                                    {/* Razorpay Option */}
+                                    <div className="border border-gray-200 rounded-lg p-4 hover:border-[#8b5e3c] transition-colors">
+                                        <div className="flex items-center justify-between mb-3">
+                                            <div className="flex items-center gap-3">
+                                                <input type="radio" name="payment" id="online" defaultChecked className="text-[#8b5e3c] focus:ring-[#8b5e3c] w-5 h-5" />
+                                                <label htmlFor="online" className="font-semibold text-gray-800 cursor-pointer">Online Payment</label>
+                                            </div>
+                                            <div className="flex space-x-2">
+                                                <img src="https://cdn.razorpay.com/static/assets/logo/payment_methods.svg" alt="Payment Methods" className="h-5 opacity-70" />
+                                            </div>
+                                        </div>
+                                        <p className="text-xs text-gray-500 ml-8 mb-4">Pay securely using Credit/Debit Card, UPI, NetBanking, or Wallets.</p>
+                                        <button
+                                            onClick={handleOnlinePayment}
+                                            disabled={processing}
+                                            className="w-full ml-8 max-w-sm bg-[#8b5e3c] text-white font-bold py-3 px-6 rounded hover:bg-[#70482d] transition-all shadow-md disabled:bg-gray-400"
+                                        >
+                                            {processing ? 'Processing...' : `PAY ₹${totalAmount.toLocaleString()} NOW`}
+                                        </button>
+                                    </div>
 
-                                <div className="border-t border-gray-200 pt-4">
-                                    <div className="flex justify-between text-lg font-bold">
-                                        <span className="text-gray-900">Total Amount</span>
-                                        <span className="text-gray-900">₹98,998</span>
+                                    <div className="relative flex py-2 items-center">
+                                        <div className="flex-grow border-t border-gray-200"></div>
+                                        <span className="flex-shrink-0 mx-4 text-gray-400 text-xs uppercase tracking-wider">OR</span>
+                                        <div className="flex-grow border-t border-gray-200"></div>
+                                    </div>
+
+                                    {/* COD Option */}
+                                    <div className="border border-gray-200 rounded-lg p-4 hover:border-gray-400 transition-colors">
+                                        <div className="flex items-center gap-3 mb-3">
+                                            <input type="radio" name="payment" id="cod" className="text-[#8b5e3c] focus:ring-[#8b5e3c] w-5 h-5" />
+                                            <label htmlFor="cod" className="font-semibold text-gray-800 cursor-pointer">Cash on Delivery</label>
+                                        </div>
+                                        <p className="text-xs text-gray-500 ml-8 mb-4">Pay in cash when your order is delivered.</p>
+                                        <button
+                                            onClick={handleCODPayment}
+                                            disabled={processing}
+                                            className="w-full ml-8 max-w-sm border-2 border-gray-300 text-gray-700 font-bold py-3 px-6 rounded hover:bg-gray-50 transition-all disabled:opacity-50"
+                                        >
+                                            PLACE ORDER (COD)
+                                        </button>
                                     </div>
                                 </div>
+                            </div>
+                        </section>
+                    </div>
 
-                                <div className="text-sm text-[#8b5e3c] font-medium bg-[#8b5e3c]/10 p-3 rounded-sm">
-                                    You saved ₹41,001 on this order
+                    {/* Right Column: Sticky Summary */}
+                    <div className="lg:w-96 flex-shrink-0">
+                        <div className="bg-white rounded-lg shadow-sm border border-gray-100 sticky top-24">
+                            <div className="p-4 border-b border-gray-100">
+                                <h3 className="text-gray-500 font-bold text-sm uppercase tracking-wide">Order Summary</h3>
+                            </div>
+                            <div className="p-6 space-y-4">
+                                <div className="flex justify-between text-gray-600">
+                                    <span>Items ({items.length})</span>
+                                    <span>₹{subtotal.toLocaleString()}</span>
+                                </div>
+                                <div className="flex justify-between text-gray-600">
+                                    <span>Delivery</span>
+                                    <span className={deliveryCharges === 0 ? 'text-green-600 font-medium' : ''}>
+                                        {deliveryCharges === 0 ? 'FREE' : `₹${deliveryCharges}`}
+                                    </span>
+                                </div>
+                                <div className="border-t pt-4 flex justify-between items-center">
+                                    <span className="text-lg font-bold text-gray-900">Total</span>
+                                    <span className="text-xl font-bold text-[#8b5e3c]">₹{totalAmount.toLocaleString()}</span>
                                 </div>
                             </div>
-
-                            <div className="p-4 border-t border-gray-200">
-                                <button
-                                    onClick={handleContinue}
-                                    disabled={!selectedAddress}
-                                    className={`w-full py-3 font-bold uppercase rounded-sm transition-colors shadow-md hover:shadow-lg ${selectedAddress
-                                        ? 'bg-[#5c4033] text-white hover:bg-[#3e2b22]'
-                                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                                        }`}
-                                >
-                                    Continue to Payment
-                                </button>
+                            <div className="bg-gray-50 p-4 text-xs text-gray-500 text-center border-t border-gray-100 rounded-b-lg">
+                                Safe & Secure Payment | 100% Authentic Products
                             </div>
                         </div>
                     </div>

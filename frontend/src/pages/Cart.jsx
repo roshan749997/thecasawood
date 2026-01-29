@@ -207,6 +207,19 @@ const Cart = () => {
                                                                         Size: {item.variantName}
                                                                     </div>
                                                                 )}
+                                                                {item.colorCode && (
+                                                                    <div className="mt-1 flex items-center gap-2">
+                                                                        <span className="text-xs text-gray-500">Color:</span>
+                                                                        {item.colorData?.color && (
+                                                                            <div
+                                                                                className="w-5 h-5 rounded border border-gray-300"
+                                                                                style={{ backgroundColor: item.colorData.color }}
+                                                                                title={item.colorCode}
+                                                                            />
+                                                                        )}
+                                                                        <span className="text-xs font-medium text-gray-700">{item.colorCode}</span>
+                                                                    </div>
+                                                                )}
                                                             </div>
                                                             <button
                                                                 onClick={() => removeItem(item._id || item.id)}

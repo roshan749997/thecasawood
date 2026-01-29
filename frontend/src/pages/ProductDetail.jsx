@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom'
 import { productsAPI, cartAPI, wishlistAPI } from '../services/api'
 import { useAuth } from '../context/AuthContext'
+import ColorSelector from '../components/ColorSelector'
 
 const ProductDetail = () => {
     const { id } = useParams()
@@ -13,6 +14,11 @@ const ProductDetail = () => {
     const [selectedImage, setSelectedImage] = useState(0)
     const [selectedVariant, setSelectedVariant] = useState(null)
     const [displayPrice, setDisplayPrice] = useState(0)
+
+    // Fabric and Color Selection State
+    const [selectedFabric, setSelectedFabric] = useState(null)
+    const [selectedColorCode, setSelectedColorCode] = useState(null)
+    const [selectedColorData, setSelectedColorData] = useState(null)
 
     // Initialize variant and price when product loads
     useEffect(() => {
@@ -73,7 +79,10 @@ const ProductDetail = () => {
             await cartAPI.add({
                 productId: id,
                 quantity,
-                variantName: selectedVariant?.name
+                variantName: selectedVariant?.name,
+                fabric: selectedFabric,
+                colorCode: selectedColorCode ? `${selectedFabric} ${selectedColorCode}` : null,
+                colorData: selectedColorData
             })
             // Trigger cart update event
             window.dispatchEvent(new Event('cartUpdated'))
@@ -96,6 +105,9 @@ const ProductDetail = () => {
                 productId: id,
                 quantity,
                 variantName: selectedVariant?.name,
+                fabric: selectedFabric,
+                colorCode: selectedColorCode ? `${selectedFabric} ${selectedColorCode}` : null,
+                colorData: selectedColorData,
                 guestId: localStorage.getItem('guestId')
             })
             // Trigger cart update event
@@ -124,6 +136,22 @@ const ProductDetail = () => {
             }
         } catch (error) {
             alert(error.response?.data?.message || 'Failed to update wishlist')
+        }
+    }
+
+    // Handle fabric/color selection change
+    const handleColorChange = (fabric, colorCode, colorData) => {
+        setSelectedFabric(fabric)
+        setSelectedColorCode(colorCode)
+        setSelectedColorData(colorData)
+
+        // If color has an image, update the main product image
+        if (colorData.image && product.images) {
+            // Find if this color image exists in product images
+            const imageIndex = product.images.findIndex(img => img.includes(colorData.image))
+            if (imageIndex !== -1) {
+                setSelectedImage(imageIndex)
+            }
         }
     }
 
@@ -308,8 +336,8 @@ const ProductDetail = () => {
                                                 setDisplayPrice(variant.price)
                                             }}
                                             className={`relative px-6 py-3 border rounded-lg text-sm font-medium transition-all flex flex-col items-center justify-center min-w-[100px] ${selectedVariant?.name === variant.name
-                                                    ? 'border-[#8b5e3c] bg-[#fff8f5] text-[#8b5e3c] shadow-sm ring-1 ring-[#8b5e3c]'
-                                                    : 'border-gray-200 bg-white text-gray-600 hover:border-[#8b5e3c] hover:shadow-sm'
+                                                ? 'border-[#8b5e3c] bg-[#fff8f5] text-[#8b5e3c] shadow-sm ring-1 ring-[#8b5e3c]'
+                                                : 'border-gray-200 bg-white text-gray-600 hover:border-[#8b5e3c] hover:shadow-sm'
                                                 }`}
                                         >
                                             <span className="font-bold text-base">{variant.name}</span>
@@ -322,24 +350,14 @@ const ProductDetail = () => {
                             </div>
                         )}
 
-                        {/* Color Options */}
-                        {(product.color || (product.colorOptions && product.colorOptions.length > 0)) && (
-                            <div className="mb-4">
-                                {product.color && (
-                                    <div className="text-sm text-gray-600 mb-1">
-                                        <span className="font-medium">Colour:</span> {product.color}
-                                    </div>
-                                )}
-                                {product.colorOptions && product.colorOptions.length > 0 && (
-                                    <div className="flex flex-wrap gap-2 mt-1">
-                                        {product.colorOptions.map((color, idx) => (
-                                            <div key={idx} className="px-3 py-1 border border-gray-300 rounded-sm text-xs font-medium text-gray-700 hover:border-[#8b5e3c] hover:text-[#8b5e3c] cursor-pointer transition-colors">
-                                                {color}
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
+                        {/* Fabric & Color Selection */}
+                        {product.fabricTypes && product.fabricTypes.length > 0 && (
+                            <ColorSelector
+                                availableFabrics={product.fabricTypes}
+                                defaultFabric={product.defaultFabric}
+                                defaultColor={product.defaultColor}
+                                onColorChange={handleColorChange}
+                            />
                         )}
 
                         {/* Price */}

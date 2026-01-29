@@ -37,6 +37,24 @@ app.use((req, res, next) => {
   next();
 });
 
+// Root route (so visiting backend URL doesn't 404)
+app.get('/', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Casawood API',
+    docs: {
+      health: '/api/health',
+      auth: '/api/auth',
+      products: '/api/products',
+      cart: '/api/cart',
+      orders: '/api/orders'
+    }
+  });
+});
+
+// Avoid 404 for browser favicon request
+app.get('/favicon.ico', (req, res) => res.status(204).end());
+
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);

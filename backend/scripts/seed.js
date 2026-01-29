@@ -70,6 +70,9 @@ const products = [
       { name: '2 seater', price: 42000, dimensions: '72 L × 33 W × 18 H' },
       { name: '3 seater', price: 56499, dimensions: '96 L × 33 W × 18 H' }
     ],
+    fabricTypes: ['KEIBA', 'VELVETO'],
+    defaultFabric: 'KEIBA',
+    defaultColor: '901',
     dimensions: { length: 96, width: 33, height: 18, unit: 'inch' }, // Default 3 seater
     isActive: true,
     policies: {
@@ -99,6 +102,9 @@ const products = [
       { key: 'Legs', value: 'Metal' }
     ],
     colorOptions: ['MERRY 705', 'MERRY 706', 'MERRY 734'],
+    fabricTypes: ['MERRY', 'ABOONE'],
+    defaultFabric: 'MERRY',
+    defaultColor: '703',
     dimensionDetails: [
       { title: '3 Seater', items: [{ label: 'Dimensions', value: '84 L × 33 W × 18 H' }] },
       { title: 'Lounger', items: [{ label: 'Dimensions', value: '78 L × 35 W × 18 H' }] }

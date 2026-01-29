@@ -18,6 +18,19 @@ const cartItemSchema = new mongoose.Schema({
   },
   variantName: {
     type: String // e.g., "3 Seater"
+  },
+  // Fabric & Color Selection
+  fabric: {
+    type: String // e.g., "KEIBA"
+  },
+  colorCode: {
+    type: String // e.g., "KEIBA 901"
+  },
+  colorData: {
+    code: String,
+    name: String,
+    color: String,
+    image: String
   }
 });
 

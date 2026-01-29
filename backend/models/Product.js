@@ -115,6 +115,16 @@ const productSchema = new mongoose.Schema({
     dimensions: String,
     image: String
   }],
+  // Fabric & Color Selection
+  fabricTypes: [{
+    type: String // e.g., "KEIBA", "MERRY", "VELVETO", "ABOONE"
+  }],
+  defaultFabric: {
+    type: String // Default fabric type to show
+  },
+  defaultColor: {
+    type: String // Default color code to show
+  },
   deliveryCondition: {
     type: String
   },

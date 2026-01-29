@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom'
 import { productsAPI, cartAPI, wishlistAPI, fabricsAPI } from '../services/api'
 import { useAuth } from '../context/AuthContext'
@@ -21,6 +21,59 @@ const ProductDetail = () => {
     const [selectedFabric, setSelectedFabric] = useState(null)
     const [selectedColorCode, setSelectedColorCode] = useState(null)
     const [selectedColorData, setSelectedColorData] = useState(null)
+
+    // Calculate available fabrics based on strict product data
+    const availableFabrics = useMemo(() => {
+        const dataKeys = Object.keys(fabricData);
+        if (dataKeys.length === 0) return [];
+
+        // Create case-insensitive lookup map
+        // e.g. { "KEIBA": "KEIBA", "keiba": "KEIBA" }
+        const keyMap = {};
+        dataKeys.forEach(key => {
+            keyMap[key] = key;
+            keyMap[key.toUpperCase()] = key;
+            keyMap[key.toLowerCase()] = key;
+        });
+
+        // 1. Explicit fabric types (Smart Matching)
+        if (product && product.fabricTypes && product.fabricTypes.length > 0) {
+            const valid = new Set();
+            product.fabricTypes.forEach(type => {
+                if (typeof type === 'string') {
+                    // Try direct match first, then case-insensitive
+                    if (keyMap[type]) {
+                        valid.add(keyMap[type]);
+                    } else if (keyMap[type.toUpperCase()]) {
+                        valid.add(keyMap[type.toUpperCase()]);
+                    }
+                }
+            });
+            // Only return if we found valid matches. 
+            // If product has fabricTypes but none match valid fabrics (e.g. typos), 
+            // we probably shouldn't show anything (Strict) or maybe Fallback?
+            // Strict is safer to avoid empty selectors.
+            if (valid.size > 0) return Array.from(valid);
+        }
+
+        // 2. Inferred from colorOptions (legacy support)
+        if (product && product.colorOptions && product.colorOptions.length > 0) {
+            const inferred = new Set();
+            product.colorOptions.forEach(opt => {
+                if (typeof opt === 'string') {
+                    const candidate = opt.split(' ')[0]; // e.g. "AMBER" from "AMBER 113"
+                    if (keyMap[candidate]) {
+                        inferred.add(keyMap[candidate]);
+                    } else if (keyMap[candidate.toUpperCase()]) {
+                        inferred.add(keyMap[candidate.toUpperCase()]);
+                    }
+                }
+            });
+            if (inferred.size > 0) return Array.from(inferred);
+        }
+
+        return [];
+    }, [product, fabricData]);
 
     // Initialize variant and price when product loads
     useEffect(() => {
@@ -379,9 +432,7 @@ const ProductDetail = () => {
                         )}
                         <ColorSelector
                             fabricData={fabricData}
-                            availableFabrics={product.fabricTypes && product.fabricTypes.length > 0
-                                ? product.fabricTypes
-                                : Object.keys(fabricData)}
+                            availableFabrics={availableFabrics}
                             defaultFabric={product.defaultFabric}
                             defaultColor={product.defaultColor}
                             onColorChange={handleColorChange}

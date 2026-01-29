@@ -28,16 +28,12 @@ const ColorSelector = ({
 
     // Initialize with first available fabric if no default provided
     // If availableFabrics is empty (shouldn't happen if parent handles it), fallback to keys of fabricData
-    const fabricsToList = availableFabrics.length > 0 ? availableFabrics : Object.keys(fabricData);
+    // Use availableFabrics directly. Parent must handle fallback if desired.
+    const fabricsToList = availableFabrics;
 
     // Safety check if no fabrics at all
-    if (fabricsToList.length === 0) {
-        // Diagnosing why it's empty
-        if (Object.keys(fabricData).length === 0) {
-            return <div className="text-sm text-gray-500 mb-6">Loading fabric options...</div>;
-        }
-        return <div className="text-sm text-gray-500 mb-6">No fabric options available for this configuration.</div>;
-    }
+    // Safety check if no fabrics at all
+    if (fabricsToList.length === 0) return null;
 
     const initialFabric = defaultFabric && fabricsToList.includes(defaultFabric) ? defaultFabric : fabricsToList[0];
     const initialColors = getColors(initialFabric);

@@ -125,4 +125,9 @@ export const paymentAPI = {
   verify: (data) => api.post('/payment/verify', data)
 };
 
+// Fabrics API
+export const fabricsAPI = {
+  getAll: () => api.get('/fabrics')
+};
+
 export default api;

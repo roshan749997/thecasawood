@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom'
-import { productsAPI, cartAPI, wishlistAPI } from '../services/api'
+import { productsAPI, cartAPI, wishlistAPI, fabricsAPI } from '../services/api'
 import { useAuth } from '../context/AuthContext'
 import ColorSelector from '../components/ColorSelector'
 
@@ -16,6 +16,8 @@ const ProductDetail = () => {
     const [displayPrice, setDisplayPrice] = useState(0)
 
     // Fabric and Color Selection State
+    const [fabricData, setFabricData] = useState({})
+    const [fabricError, setFabricError] = useState(null)
     const [selectedFabric, setSelectedFabric] = useState(null)
     const [selectedColorCode, setSelectedColorCode] = useState(null)
     const [selectedColorData, setSelectedColorData] = useState(null)
@@ -38,15 +40,34 @@ const ProductDetail = () => {
     const [isInWishlist, setIsInWishlist] = useState(false)
     const [addingToCart, setAddingToCart] = useState(false)
 
-    // Fetch product from API
+    // Fetch product and fabrics from API
     useEffect(() => {
-        const fetchProduct = async () => {
+        const fetchData = async () => {
             try {
                 setLoading(true)
-                const response = await productsAPI.getById(id)
-                if (response.data.success) {
-                    setProduct(response.data.data)
+
+                // Fetch product
+                const productResponse = await productsAPI.getById(id)
+                if (productResponse.data.success) {
+                    setProduct(productResponse.data.data)
                 }
+
+                // Fetch fabrics
+                try {
+                    const fabricResponse = await fabricsAPI.getAll()
+                    if (fabricResponse.data.success) {
+                        if (Object.keys(fabricResponse.data.data).length === 0) {
+                            console.warn("Fabric data fetched but empty");
+                        }
+                        setFabricData(fabricResponse.data.data)
+                    } else {
+                        setFabricError("API returned failure")
+                    }
+                } catch (fabricError) {
+                    console.error('Error fetching fabrics:', fabricError)
+                    setFabricError(`Fetch Error: ${fabricError.message}`)
+                }
+
             } catch (error) {
                 console.error('Error fetching product:', error)
             } finally {
@@ -66,7 +87,7 @@ const ProductDetail = () => {
             }
         }
 
-        fetchProduct()
+        fetchData()
         checkWishlist()
     }, [id, isAuthenticated])
 
@@ -350,15 +371,21 @@ const ProductDetail = () => {
                             </div>
                         )}
 
-                        {/* Fabric & Color Selection */}
-                        {product.fabricTypes && product.fabricTypes.length > 0 && (
-                            <ColorSelector
-                                availableFabrics={product.fabricTypes}
-                                defaultFabric={product.defaultFabric}
-                                defaultColor={product.defaultColor}
-                                onColorChange={handleColorChange}
-                            />
+                        {/* Fabric & Color Selection - Available for all products */}
+                        {fabricError && (
+                            <div className="p-4 mb-4 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
+                                Unable to load fabric options: {fabricError}
+                            </div>
                         )}
+                        <ColorSelector
+                            fabricData={fabricData}
+                            availableFabrics={product.fabricTypes && product.fabricTypes.length > 0
+                                ? product.fabricTypes
+                                : Object.keys(fabricData)}
+                            defaultFabric={product.defaultFabric}
+                            defaultColor={product.defaultColor}
+                            onColorChange={handleColorChange}
+                        />
 
                         {/* Price */}
                         <div className="flex items-end gap-3 mb-4">

@@ -1,46 +1,74 @@
 import { useState, useEffect } from 'react';
-import { fabricColors, getFabricTypes, getColorsForFabric, getFullColorCode } from '../data/fabricData';
 
 /**
  * ColorSelector Component
  * 
  * Professional fabric and color selection UI for furniture products
- * Features:
- * - Fabric type selection (KEIBA, MERRY, etc.)
- * - Color swatches with hover effects
- * - Smooth transitions
- * - Mobile responsive
+ * Fetches data dynamically from passed props (which come from backend).
  * 
  * @param {Object} props
+ * @param {Object} props.fabricData - Full fabric data map (e.g., { "KEIBA": [...colors] })
  * @param {Array} props.availableFabrics - List of fabric types to show (e.g., ['KEIBA', 'MERRY'])
  * @param {String} props.defaultFabric - Initial fabric selection
  * @param {String} props.defaultColor - Initial color code
  * @param {Function} props.onColorChange - Callback when color changes: (fabric, colorCode, colorData) => {}
  */
 const ColorSelector = ({
-    availableFabrics = getFabricTypes(),
+    fabricData = {}, // Defaults to empty object if not loaded yet
+    availableFabrics = [],
     defaultFabric = null,
     defaultColor = null,
     onColorChange
 }) => {
+    // Helper to get colors safely
+    const getColors = (fabric) => fabricData[fabric] || [];
+
+    // Helper for color code format
+    const getFullColorCode = (fabric, code) => `${fabric} ${code}`;
+
     // Initialize with first available fabric if no default provided
-    const initialFabric = defaultFabric || availableFabrics[0];
-    const initialColors = getColorsForFabric(initialFabric);
+    // If availableFabrics is empty (shouldn't happen if parent handles it), fallback to keys of fabricData
+    const fabricsToList = availableFabrics.length > 0 ? availableFabrics : Object.keys(fabricData);
+
+    // Safety check if no fabrics at all
+    if (fabricsToList.length === 0) {
+        // Diagnosing why it's empty
+        if (Object.keys(fabricData).length === 0) {
+            return <div className="text-sm text-gray-500 mb-6">Loading fabric options...</div>;
+        }
+        return <div className="text-sm text-gray-500 mb-6">No fabric options available for this configuration.</div>;
+    }
+
+    const initialFabric = defaultFabric && fabricsToList.includes(defaultFabric) ? defaultFabric : fabricsToList[0];
+    const initialColors = getColors(initialFabric);
     const initialColor = defaultColor || initialColors[0]?.code;
 
     const [selectedFabric, setSelectedFabric] = useState(initialFabric);
     const [selectedColor, setSelectedColor] = useState(initialColor);
     const [hoveredColor, setHoveredColor] = useState(null);
 
+    // Update state if props change (e.g. data loaded late)
+    useEffect(() => {
+        if (Object.keys(fabricData).length > 0 && !selectedFabric) {
+            const firstFabric = fabricsToList[0];
+            if (firstFabric) {
+                setSelectedFabric(firstFabric);
+                const colors = getColors(firstFabric);
+                if (colors.length > 0) setSelectedColor(colors[0].code);
+            }
+        }
+    }, [fabricData, fabricsToList, selectedFabric]);
+
+
     // Get current color options based on selected fabric
-    const currentColors = getColorsForFabric(selectedFabric);
+    const currentColors = getColors(selectedFabric);
 
     // Handle fabric change
     const handleFabricChange = (fabric) => {
         setSelectedFabric(fabric);
 
         // Auto-select first color of new fabric
-        const newColors = getColorsForFabric(fabric);
+        const newColors = getColors(fabric);
         if (newColors.length > 0) {
             const firstColor = newColors[0];
             setSelectedColor(firstColor.code);
@@ -81,13 +109,13 @@ const ColorSelector = ({
                 </div>
 
                 <div className="flex flex-wrap gap-2">
-                    {availableFabrics.map((fabric) => (
+                    {fabricsToList.map((fabric) => (
                         <button
                             key={fabric}
                             onClick={() => handleFabricChange(fabric)}
                             className={`px-5 py-2.5 border rounded-lg text-sm font-semibold transition-all duration-200 ${selectedFabric === fabric
-                                    ? 'border-[#8b5e3c] bg-[#fff8f5] text-[#8b5e3c] shadow-sm ring-1 ring-[#8b5e3c]'
-                                    : 'border-gray-200 bg-white text-gray-600 hover:border-[#8b5e3c] hover:shadow-sm'
+                                ? 'border-[#8b5e3c] bg-[#fff8f5] text-[#8b5e3c] shadow-sm ring-1 ring-[#8b5e3c]'
+                                : 'border-gray-200 bg-white text-gray-600 hover:border-[#8b5e3c] hover:shadow-sm'
                                 }`}
                         >
                             {fabric}
@@ -123,8 +151,8 @@ const ColorSelector = ({
                                     onMouseEnter={() => setHoveredColor(colorData)}
                                     onMouseLeave={() => setHoveredColor(null)}
                                     className={`w-9 h-9 rounded-md transition-all duration-200 ${isSelected
-                                            ? 'ring-2 ring-[#8b5e3c] ring-offset-2 scale-110 shadow-md'
-                                            : 'ring-1 ring-gray-200 hover:ring-[#8b5e3c] hover:scale-105 hover:shadow-sm'
+                                        ? 'ring-2 ring-[#8b5e3c] ring-offset-2 scale-110 shadow-md'
+                                        : 'ring-1 ring-gray-200 hover:ring-[#8b5e3c] hover:scale-105 hover:shadow-sm'
                                         }`}
                                     style={{ backgroundColor: colorData.color }}
                                     title={fullCode}

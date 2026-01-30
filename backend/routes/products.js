@@ -25,7 +25,11 @@ router.get('/', async (req, res) => {
     const query = { isActive: true };
 
     if (category && category !== 'All') {
-      query.category = category;
+      if (category === 'Sofas') {
+        query.category = { $in: ['Polyester Fabric Sofas', 'Leatherette Sofas', 'Sofas'] };
+      } else {
+        query.category = category;
+      }
     }
 
     if (minPrice || maxPrice) {

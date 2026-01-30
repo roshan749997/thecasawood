@@ -153,7 +153,7 @@ const ProductDetail = () => {
             await cartAPI.add({
                 productId: id,
                 quantity,
-                variantName: selectedVariant?.name,
+                variantName: selectedVariant?.name || selectedVariant?.type || selectedVariant?.label || selectedVariant?.title,
                 fabric: selectedFabric,
                 colorCode: selectedColorCode ? `${selectedFabric} ${selectedColorCode}` : null,
                 colorData: selectedColorData
@@ -178,7 +178,7 @@ const ProductDetail = () => {
             await cartAPI.add({
                 productId: id,
                 quantity,
-                variantName: selectedVariant?.name,
+                variantName: selectedVariant?.name || selectedVariant?.type || selectedVariant?.label || selectedVariant?.title,
                 fabric: selectedFabric,
                 colorCode: selectedColorCode ? `${selectedFabric} ${selectedColorCode}` : null,
                 colorData: selectedColorData,
@@ -269,7 +269,7 @@ const ProductDetail = () => {
                 <div className="flex flex-col md:flex-row">
 
                     {/* LEFT COLUMN - Sticky Images & Buttons */}
-                    <div className="w-full md:w-[40%] lg:w-[35%] p-4 sticky top-0 h-fit bg-white">
+                    <div className="w-full md:w-[40%] lg:w-[35%] p-4 relative md:sticky md:top-0 h-fit bg-white">
                         <div className="flex flex-col relative">
                             {/* Main Image Area */}
                             <div className="flex">
@@ -399,7 +399,7 @@ const ProductDetail = () => {
                         {product.variants && product.variants.length > 0 && (
                             <div className="mb-6">
                                 <div className="text-sm text-gray-900 font-medium mb-3">
-                                    Select Configuration: <span className="text-[#8b5e3c] font-bold">{selectedVariant?.name}</span>
+                                    Select Configuration: <span className="text-[#8b5e3c] font-bold">{selectedVariant?.name || selectedVariant?.type || selectedVariant?.label || selectedVariant?.title || (typeof selectedVariant === 'string' ? selectedVariant : '')}</span>
                                 </div>
                                 <div className="flex flex-wrap gap-3">
                                     {product.variants.map((variant, idx) => (
@@ -409,14 +409,16 @@ const ProductDetail = () => {
                                                 setSelectedVariant(variant)
                                                 setDisplayPrice(variant.price)
                                             }}
-                                            className={`relative px-6 py-3 border rounded-lg text-sm font-medium transition-all flex flex-col items-center justify-center min-w-[100px] ${selectedVariant?.name === variant.name
+                                            className={`relative px-6 py-3 border rounded-lg text-sm font-medium transition-all flex flex-col items-center justify-center min-w-[100px] ${(selectedVariant?.name || selectedVariant?.type) === (variant.name || variant.type)
                                                 ? 'border-[#8b5e3c] bg-[#fff8f5] text-[#8b5e3c] shadow-sm ring-1 ring-[#8b5e3c]'
                                                 : 'border-gray-200 bg-white text-gray-600 hover:border-[#8b5e3c] hover:shadow-sm'
                                                 }`}
                                         >
-                                            <span className="font-bold text-base">{variant.name}</span>
+                                            <span className="font-bold text-base">
+                                                {variant.name || variant.type || variant.label || variant.title || (typeof variant === 'string' ? variant : `Option ${idx + 1}`)}
+                                            </span>
                                             {variant.dimensions && (
-                                                <span className="text-[10px] text-gray-500 mt-1 opacity-80 hidden md:block">{variant.dimensions.split('×')[0]}...</span>
+                                                <span className="text-[11px] text-gray-500 mt-1 block">{variant.dimensions.split('×')[0]}...</span>
                                             )}
                                         </button>
                                     ))}
@@ -525,20 +527,20 @@ const ProductDetail = () => {
                                 <div className="mb-4">
                                     <div className="text-sm font-medium text-gray-800 mb-3 uppercase">General</div>
                                     <div className="border border-gray-200 rounded-sm">
-                                        <div className="grid grid-cols-3 border-b border-gray-200 last:border-b-0">
-                                            <div className="p-3 text-sm text-gray-500 col-span-1">Sales Package</div>
-                                            <div className="p-3 text-sm text-gray-800 col-span-2">1 {product.category?.slice(0, -1) || 'Unit'}</div>
+                                        <div className="flex flex-col md:grid md:grid-cols-3 border-b border-gray-200 last:border-b-0">
+                                            <div className="p-3 text-sm text-gray-500 md:col-span-1">Sales Package</div>
+                                            <div className="p-3 text-sm text-gray-800 md:col-span-2 pt-0 md:pt-3">1 {product.category?.slice(0, -1) || 'Unit'}</div>
                                         </div>
-                                        <div className="grid grid-cols-3 border-b border-gray-200 last:border-b-0">
-                                            <div className="p-3 text-sm text-gray-500 col-span-1">Model Number</div>
-                                            <div className="p-3 text-sm text-gray-800 col-span-2">CW-{product.id}-2026</div>
+                                        <div className="flex flex-col md:grid md:grid-cols-3 border-b border-gray-200 last:border-b-0">
+                                            <div className="p-3 text-sm text-gray-500 md:col-span-1">Model Number</div>
+                                            <div className="p-3 text-sm text-gray-800 md:col-span-2 pt-0 md:pt-3">CW-{product.id}-2026</div>
                                         </div>
 
                                         {/* Dynamic Specifications */}
                                         {product.specifications?.map((spec, index) => (
-                                            <div key={index} className="grid grid-cols-3 border-b border-gray-200 last:border-b-0">
-                                                <div className="p-3 text-sm text-gray-500 col-span-1 capitalize">{spec.key}</div>
-                                                <div className="p-3 text-sm text-gray-800 col-span-2">{spec.value}</div>
+                                            <div key={index} className="flex flex-col md:grid md:grid-cols-3 border-b border-gray-200 last:border-b-0">
+                                                <div className="p-3 text-sm text-gray-500 md:col-span-1 capitalize">{spec.key}</div>
+                                                <div className="p-3 text-sm text-gray-800 md:col-span-2 pt-0 md:pt-3">{spec.value}</div>
                                             </div>
                                         ))}
 
@@ -546,21 +548,21 @@ const ProductDetail = () => {
                                         {(!product.specifications || product.specifications.length === 0) && (
                                             <>
                                                 {product.material && (
-                                                    <div className="grid grid-cols-3 border-b border-gray-200 last:border-b-0">
-                                                        <div className="p-3 text-sm text-gray-500 col-span-1">Material</div>
-                                                        <div className="p-3 text-sm text-gray-800 col-span-2">{product.material}</div>
+                                                    <div className="flex flex-col md:grid md:grid-cols-3 border-b border-gray-200 last:border-b-0">
+                                                        <div className="p-3 text-sm text-gray-500 md:col-span-1">Material</div>
+                                                        <div className="p-3 text-sm text-gray-800 md:col-span-2 pt-0 md:pt-3">{product.material}</div>
                                                     </div>
                                                 )}
                                                 {product.color && (
-                                                    <div className="grid grid-cols-3 border-b border-gray-200 last:border-b-0">
-                                                        <div className="p-3 text-sm text-gray-500 col-span-1">Color</div>
-                                                        <div className="p-3 text-sm text-gray-800 col-span-2">{product.color}</div>
+                                                    <div className="flex flex-col md:grid md:grid-cols-3 border-b border-gray-200 last:border-b-0">
+                                                        <div className="p-3 text-sm text-gray-500 md:col-span-1">Color</div>
+                                                        <div className="p-3 text-sm text-gray-800 md:col-span-2 pt-0 md:pt-3">{product.color}</div>
                                                     </div>
                                                 )}
                                                 {product.deliveryCondition && (
-                                                    <div className="grid grid-cols-3 border-b border-gray-200 last:border-b-0">
-                                                        <div className="p-3 text-sm text-gray-500 col-span-1">Delivery Condition</div>
-                                                        <div className="p-3 text-sm text-gray-800 col-span-2">{product.deliveryCondition}</div>
+                                                    <div className="flex flex-col md:grid md:grid-cols-3 border-b border-gray-200 last:border-b-0">
+                                                        <div className="p-3 text-sm text-gray-500 md:col-span-1">Delivery Condition</div>
+                                                        <div className="p-3 text-sm text-gray-800 md:col-span-2 pt-0 md:pt-3">{product.deliveryCondition}</div>
                                                     </div>
                                                 )}
                                             </>
@@ -575,9 +577,9 @@ const ProductDetail = () => {
                                             {/* Show Selected Variant Dimensions Highlighted if available */}
                                             {selectedVariant?.dimensions && (
                                                 <div className="bg-[#fff8f5] border-b border-[#8b5e3c]/20">
-                                                    <div className="grid grid-cols-3">
-                                                        <div className="p-3 text-sm font-medium text-[#8b5e3c] col-span-1">Selected Configuration</div>
-                                                        <div className="p-3 text-sm font-bold text-[#8b5e3c] col-span-2">
+                                                    <div className="flex flex-col md:grid md:grid-cols-3">
+                                                        <div className="p-3 text-sm font-medium text-[#8b5e3c] md:col-span-1">Selected Configuration</div>
+                                                        <div className="p-3 text-sm font-bold text-[#8b5e3c] md:col-span-2 pt-0 md:pt-3">
                                                             {selectedVariant.dimensions}
                                                         </div>
                                                     </div>
@@ -592,9 +594,9 @@ const ProductDetail = () => {
                                                         </div>
                                                     )}
                                                     {detail.items.map((item, itemIdx) => (
-                                                        <div key={itemIdx} className="grid grid-cols-3 border-b border-gray-100 last:border-b-0">
-                                                            <div className="p-3 text-sm text-gray-500 col-span-1">{item.label}</div>
-                                                            <div className="p-3 text-sm text-gray-800 col-span-2">{item.value}</div>
+                                                        <div key={itemIdx} className="flex flex-col md:grid md:grid-cols-3 border-b border-gray-100 last:border-b-0">
+                                                            <div className="p-3 text-sm text-gray-500 md:col-span-1">{item.label}</div>
+                                                            <div className="p-3 text-sm text-gray-800 md:col-span-2 pt-0 md:pt-3">{item.value}</div>
                                                         </div>
                                                     ))}
                                                 </div>
@@ -608,30 +610,30 @@ const ProductDetail = () => {
                                             <div className="border border-gray-200 rounded-sm">
                                                 {/* Priority: Selected Variant String -> Product String -> Product Object */}
                                                 {(selectedVariant?.dimensions || typeof product.dimensions === 'string') ? (
-                                                    <div className="grid grid-cols-3 border-b border-gray-200 last:border-b-0">
-                                                        <div className="p-3 text-sm text-gray-500 col-span-1">Dimensions</div>
-                                                        <div className="p-3 text-sm text-gray-800 col-span-2 font-medium">
+                                                    <div className="flex flex-col md:grid md:grid-cols-3 border-b border-gray-200 last:border-b-0">
+                                                        <div className="p-3 text-sm text-gray-500 md:col-span-1">Dimensions</div>
+                                                        <div className="p-3 text-sm text-gray-800 md:col-span-2 font-medium pt-0 md:pt-3">
                                                             {selectedVariant?.dimensions || product.dimensions}
                                                         </div>
                                                     </div>
                                                 ) : (
                                                     <>
                                                         {product.dimensions.length && (
-                                                            <div className="grid grid-cols-3 border-b border-gray-200 last:border-b-0">
-                                                                <div className="p-3 text-sm text-gray-500 col-span-1">Length</div>
-                                                                <div className="p-3 text-sm text-gray-800 col-span-2">{product.dimensions.length} {product.dimensions.unit || 'cm'}</div>
+                                                            <div className="flex flex-col md:grid md:grid-cols-3 border-b border-gray-200 last:border-b-0">
+                                                                <div className="p-3 text-sm text-gray-500 md:col-span-1">Length</div>
+                                                                <div className="p-3 text-sm text-gray-800 md:col-span-2 pt-0 md:pt-3">{product.dimensions.length} {product.dimensions.unit || 'cm'}</div>
                                                             </div>
                                                         )}
                                                         {product.dimensions.width && (
-                                                            <div className="grid grid-cols-3 border-b border-gray-200 last:border-b-0">
-                                                                <div className="p-3 text-sm text-gray-500 col-span-1">Width</div>
-                                                                <div className="p-3 text-sm text-gray-800 col-span-2">{product.dimensions.width} {product.dimensions.unit || 'cm'}</div>
+                                                            <div className="flex flex-col md:grid md:grid-cols-3 border-b border-gray-200 last:border-b-0">
+                                                                <div className="p-3 text-sm text-gray-500 md:col-span-1">Width</div>
+                                                                <div className="p-3 text-sm text-gray-800 md:col-span-2 pt-0 md:pt-3">{product.dimensions.width} {product.dimensions.unit || 'cm'}</div>
                                                             </div>
                                                         )}
                                                         {product.dimensions.height && (
-                                                            <div className="grid grid-cols-3 border-b border-gray-200 last:border-b-0">
-                                                                <div className="p-3 text-sm text-gray-500 col-span-1">Height</div>
-                                                                <div className="p-3 text-sm text-gray-800 col-span-2">{product.dimensions.height} {product.dimensions.unit || 'cm'}</div>
+                                                            <div className="flex flex-col md:grid md:grid-cols-3 border-b border-gray-200 last:border-b-0">
+                                                                <div className="p-3 text-sm text-gray-500 md:col-span-1">Height</div>
+                                                                <div className="p-3 text-sm text-gray-800 md:col-span-2 pt-0 md:pt-3">{product.dimensions.height} {product.dimensions.unit || 'cm'}</div>
                                                             </div>
                                                         )}
                                                     </>

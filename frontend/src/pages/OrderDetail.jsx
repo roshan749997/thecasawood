@@ -93,6 +93,41 @@ const OrderDetail = () => {
                                         </div>
                                         <div className="flex-1">
                                             <h3 className="font-medium text-gray-900 mb-1">{item.name}</h3>
+
+                                            {/* Configuration Details */}
+                                            {/* Configuration Details */}
+                                            <div className="text-sm text-gray-600 space-y-1 mb-2 bg-gray-50 p-2 rounded-md border border-gray-100">
+                                                {item.variantName && (
+                                                    <div className="flex gap-2">
+                                                        <span className="font-medium text-gray-500 min-w-[80px]">Variant:</span>
+                                                        <span className="font-semibold text-gray-900">{item.variantName}</span>
+                                                    </div>
+                                                )}
+                                                {item.fabric && (
+                                                    <div className="flex gap-2">
+                                                        <span className="font-medium text-gray-500 min-w-[80px]">Fabric:</span>
+                                                        <span className="font-semibold text-gray-900">{item.fabric}</span>
+                                                    </div>
+                                                )}
+                                                {(item.colorCode || item.colorData) && (
+                                                    <div className="flex gap-2 items-center">
+                                                        <span className="font-medium text-gray-500 min-w-[80px]">Color:</span>
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="font-semibold text-gray-900">
+                                                                {item.colorData?.name || item.colorCode || 'Custom'}
+                                                            </span>
+                                                            {item.colorData?.color && (
+                                                                <span
+                                                                    className="w-4 h-4 rounded-full border border-gray-300 shadow-sm"
+                                                                    style={{ backgroundColor: item.colorData.color }}
+                                                                    title={item.colorData.name}
+                                                                ></span>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+
                                             <p className="text-sm text-gray-500 mb-2">Quantity: {item.quantity}</p>
                                             <div className="flex items-center gap-2">
                                                 <span className="font-bold text-gray-900">₹{item.price.toLocaleString()}</span>

@@ -25,7 +25,11 @@ const orderItemSchema = new mongoose.Schema({
   },
   originalPrice: {
     type: Number
-  }
+  },
+  variantName: String,
+  fabric: String,
+  colorCode: String,
+  colorData: mongoose.Schema.Types.Mixed
 }, { _id: false });
 
 const orderSchema = new mongoose.Schema({

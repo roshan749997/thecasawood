@@ -127,7 +127,11 @@ router.post('/', async (req, res) => {
         image: product.image,
         quantity: item.quantity,
         price: item.price,
-        originalPrice: product.originalPrice || product.price
+        originalPrice: product.originalPrice || product.price,
+        variantName: item.variantName,
+        fabric: item.fabric,
+        colorCode: item.colorCode,
+        colorData: item.colorData
       };
     });
 

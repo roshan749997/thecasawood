@@ -146,9 +146,9 @@ const ColorSelector = ({
                                     onClick={() => handleColorChange(colorData)}
                                     onMouseEnter={() => setHoveredColor(colorData)}
                                     onMouseLeave={() => setHoveredColor(null)}
-                                    className={`w-9 h-9 rounded-md transition-all duration-200 ${isSelected
-                                        ? 'ring-2 ring-[#8b5e3c] ring-offset-2 scale-110 shadow-md'
-                                        : 'ring-1 ring-gray-200 hover:ring-[#8b5e3c] hover:scale-105 hover:shadow-sm'
+                                    className={`w-12 h-12 rounded-md transition-all duration-300 ${isSelected
+                                        ? 'ring-2 ring-[#8b5e3c] ring-offset-2 scale-110 shadow-lg z-10'
+                                        : 'ring-1 ring-gray-200 hover:ring-[#8b5e3c] hover:scale-105 hover:shadow-md'
                                         }`}
                                     style={{ backgroundColor: colorData.color }}
                                     title={fullCode}
@@ -158,7 +158,7 @@ const ColorSelector = ({
                                     {isSelected && (
                                         <div className="absolute inset-0 flex items-center justify-center">
                                             <svg
-                                                className="w-4 h-4 text-white drop-shadow-md"
+                                                className="w-6 h-6 text-white drop-shadow-md"
                                                 fill="currentColor"
                                                 viewBox="0 0 20 20"
                                             >

@@ -12,13 +12,13 @@ export const navLinks = [
 const CategoryHeader = ({ activeLink, setActiveLink }) => {
     return (
         <div className="py-2 overflow-x-auto no-scrollbar bg-white shadow-sm border-t border-gray-100">
-            <div className="max-w-[1600px] mx-auto px-4 flex items-center sm:justify-start lg:justify-center min-w-max gap-4 sm:gap-6">
+            <div className="max-w-[1600px] mx-auto px-2 md:px-4 flex items-center justify-start lg:justify-center min-w-max gap-1.5 sm:gap-6">
                 {navLinks.map((link) => (
                     <Link
                         key={link.name}
                         to={link.to}
                         onClick={() => setActiveLink(link.name)}
-                        className={`text-[11px] sm:text-xs font-bold tracking-wider uppercase whitespace-nowrap px-3 py-1.5 rounded-full transition-all duration-200 border ${activeLink === link.name
+                        className={`text-[11px] sm:text-xs font-bold tracking-wider uppercase whitespace-nowrap px-2 sm:px-3 py-1.5 rounded-full transition-all duration-200 border ${activeLink === link.name
                             ? 'text-[#8b5e3c] border-[#8b5e3c] bg-[#8b5e3c]/5'
                             : 'text-gray-700 border-transparent hover:text-[#8b5e3c] hover:bg-gray-50'
                             }`}

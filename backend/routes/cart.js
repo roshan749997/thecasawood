@@ -139,7 +139,10 @@ router.post('/', optionalProtect, async (req, res) => {
         product: productId,
         quantity,
         price: finalPrice,
-        variantName: variantName
+        variantName: variantName,
+        fabric: req.body.fabric,
+        colorCode: req.body.colorCode,
+        colorData: req.body.colorData
       });
     }
 
@@ -299,12 +302,14 @@ router.post('/save-for-later/:itemId', optionalProtect, async (req, res) => {
       });
     }
 
-    const item = cart.items[itemIndex];
     cart.savedForLater.push({
       product: item.product,
       quantity: item.quantity,
       price: item.price,
-      variantName: item.variantName
+      variantName: item.variantName,
+      fabric: item.fabric,
+      colorCode: item.colorCode,
+      colorData: item.colorData
     });
 
     cart.items.splice(itemIndex, 1);
@@ -373,7 +378,10 @@ router.post('/move-to-cart/:itemId', optionalProtect, async (req, res) => {
         product: item.product,
         quantity: item.quantity,
         price: item.price,
-        variantName: item.variantName
+        variantName: item.variantName,
+        fabric: item.fabric,
+        colorCode: item.colorCode,
+        colorData: item.colorData
       });
     }
 

@@ -13,31 +13,25 @@ const PopularCategories = () => {
             id: 2,
             title: 'Coffee & Center Tables',
             image: 'https://res.cloudinary.com/dvkxgrcbv/image/upload/v1769077664/Coffee_Center_table_xoiusz.jpg',
-            link: 'Tables'
+            link: 'Coffee & Center Tables'
         },
         {
             id: 3,
             title: 'Dining Tables',
             image: 'https://res.cloudinary.com/dvkxgrcbv/image/upload/v1769077674/Dining_table_rcrp6c.jpg',
-            link: 'Dining'
+            link: 'Dining Tables'
         },
         {
             id: 4,
-            title: 'Leatherette Sofas',
+            title: 'Sofas',
             image: 'https://res.cloudinary.com/dvkxgrcbv/image/upload/v1769077688/leatherette_sofa_gxjoil.jpg',
             link: 'Sofas'
         },
         {
             id: 5,
-            title: 'Polyester Fabric Sofas',
-            image: 'https://res.cloudinary.com/dvkxgrcbv/image/upload/v1769148465/1b0809f6-f4d9-411d-b5dd-a03f8872064f.png',
-            link: 'Sofas'
-        },
-        {
-            id: 6,
             title: 'Lounge chair',
             image: 'https://res.cloudinary.com/dvkxgrcbv/image/upload/v1769499030/f237b728-e210-43c5-beae-f09077038e5c.png',
-            link: 'Chairs'
+            link: 'Lounge chair'
         },
     ];
 
@@ -53,12 +47,12 @@ const PopularCategories = () => {
                 </div>
 
                 {/* Categories Grid */}
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6 lg:gap-8">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6 lg:gap-8 justify-items-center">
                     {categories.map((category) => (
                         <Link
-                            to={`/products?category=${category.link}`}
+                            to={`/products?category=${encodeURIComponent(category.link)}`}
                             key={category.id}
-                            className="group cursor-pointer flex flex-col items-center"
+                            className="group cursor-pointer flex flex-col items-center w-full max-w-[220px] sm:max-w-[240px]"
                         >
                             {/* Image Container */}
                             <div className="w-full aspect-square overflow-hidden rounded-2xl bg-gray-100 mb-4 transition-transform duration-300 group-hover:scale-[1.02]">

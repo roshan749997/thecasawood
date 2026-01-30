@@ -7,6 +7,7 @@ import StyleInspiration from '../components/StyleInspiration'
 import BestSeller from '../components/BestSeller'
 import InteriorSolutions from '../components/InteriorSolutions'
 import ModernLuxury from '../components/ModernLuxury'
+import NewArrivalSofas from '../components/NewArrivalSofas'
 import CraftsmanshipSection from '../components/CraftsmanshipSection'
 import TestimonialSection from '../components/TestimonialSection'
 import PoliciesSection from '../components/PoliciesSection'
@@ -18,6 +19,7 @@ const Home = () => {
             <HeroSection />
             <PopularCategories />
             <ModernLuxury />
+            <NewArrivalSofas />
             <FeaturedCollection />
             <BestSeller />
 

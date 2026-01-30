@@ -90,14 +90,15 @@ const ProductList = () => {
         return () => { ignore = true }
     }, [selectedCategory, sortBy, priceRange, page])
 
+    const displayCategory = (selectedCategory || 'All').toUpperCase()
+
     return (
         <div className="bg-gray-50 min-h-screen py-12">
             <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Header */}
                 <div className="flex flex-col md:flex-row justify-between items-center mb-8">
                     <div className="text-center md:text-left mb-4 md:mb-0">
-                        <h1 className="text-3xl font-bold text-gray-900 mb-2">Our Collection</h1>
-                        <p className="text-gray-500">Discover hand-picked premium furniture for your home</p>
+                        <h1 className="text-3xl font-bold text-gray-900 mb-2">{displayCategory}</h1>
                     </div>
 
                     <div className="flex items-center gap-4 w-full md:w-auto">

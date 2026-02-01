@@ -21,6 +21,19 @@ const Signup = lazy(() => import('./pages/Signup'))
 const OrderSuccess = lazy(() => import('./pages/OrderSuccess'))
 const Orders = lazy(() => import('./pages/Orders'))
 
+// Admin pages
+const AdminLayout = lazy(() => import('./admin/components/AdminLayout'))
+const AdminDashboard = lazy(() => import('./admin/pages/Dashboard'))
+const AdminProducts = lazy(() => import('./admin/pages/Products'))
+const AdminProductForm = lazy(() => import('./admin/pages/ProductForm'))
+const AdminCategories = lazy(() => import('./admin/pages/Categories'))
+const AdminOrders = lazy(() => import('./admin/pages/Orders'))
+const AdminOrderDetail = lazy(() => import('./admin/pages/OrderDetail'))
+const AdminUsers = lazy(() => import('./admin/pages/Users'))
+const AdminPayments = lazy(() => import('./admin/pages/Payments'))
+const AdminReports = lazy(() => import('./admin/pages/Reports'))
+const AdminSettings = lazy(() => import('./admin/pages/Settings'))
+
 // Loading component
 const PageLoader = () => (
   <div className="min-h-[60vh] flex items-center justify-center">
@@ -31,19 +44,20 @@ const PageLoader = () => (
 const AppContent = () => {
   const location = useLocation() // Now this hook works because it's inside Router
   const isAuthPage = ['/login', '/signup'].includes(location.pathname)
+  const isAdminPage = location.pathname.startsWith('/admin')
 
   return (
-    <div className={`min-h-screen bg-gray-50 flex flex-col ${!isAuthPage ? 'pb-16 lg:pb-0' : ''}`}>
+    <div className={`min-h-screen bg-gray-50 flex flex-col ${!isAuthPage && !isAdminPage ? 'pb-16 lg:pb-0' : ''}`}>
       <ScrollToTop />
-      {!isAuthPage && <Navbar />}
+      {!isAuthPage && !isAdminPage && <Navbar />}
       <Suspense fallback={<PageLoader />}>
         <Routes>
+          {/* Public Routes */}
           <Route path="/" element={<Home />} />
           <Route path="/products" element={<ProductList />} />
           <Route path="/product/:id" element={<ProductDetail />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/address" element={<Address />} />
-
           <Route path="/order/:id" element={<OrderDetail />} />
           <Route path="/orders" element={<Orders />} />
           <Route path="/profile" element={<Profile />} />
@@ -51,10 +65,25 @@ const AppContent = () => {
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/order-success/:id" element={<OrderSuccess />} />
+
+          {/* Admin Routes */}
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<AdminDashboard />} />
+            <Route path="products" element={<AdminProducts />} />
+            <Route path="products/add" element={<AdminProductForm />} />
+            <Route path="products/edit/:id" element={<AdminProductForm />} />
+            <Route path="categories" element={<AdminCategories />} />
+            <Route path="orders" element={<AdminOrders />} />
+            <Route path="orders/:id" element={<AdminOrderDetail />} />
+            <Route path="users" element={<AdminUsers />} />
+            <Route path="payments" element={<AdminPayments />} />
+            <Route path="reports" element={<AdminReports />} />
+            <Route path="settings" element={<AdminSettings />} />
+          </Route>
         </Routes>
       </Suspense>
-      {!isAuthPage && <Footer />}
-      {!isAuthPage && <MobileBottomNav />}
+      {!isAuthPage && !isAdminPage && <Footer />}
+      {!isAuthPage && !isAdminPage && <MobileBottomNav />}
     </div>
   )
 }

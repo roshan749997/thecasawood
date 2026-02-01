@@ -130,4 +130,9 @@ export const fabricsAPI = {
   getAll: () => api.get('/fabrics')
 };
 
+// Categories API (public - for navbar)
+export const categoriesAPI = {
+  getNavbarCategories: () => api.get('/categories')
+};
+
 export default api;

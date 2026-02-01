@@ -15,6 +15,8 @@ import addressRoutes from './routes/addresses.js';
 import userRoutes from './routes/users.js';
 import paymentRoutes from './routes/payment.js';
 import fabricRoutes from './routes/fabrics.js';
+import categoriesRoutes from './routes/categories.js';
+import adminRoutes from './routes/admin.js';
 
 // Load environment variables
 dotenv.config();
@@ -66,6 +68,8 @@ app.use('/api/addresses', addressRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/fabrics', fabricRoutes);
+app.use('/api/categories', categoriesRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

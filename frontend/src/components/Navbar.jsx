@@ -2,10 +2,11 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { cartAPI } from '../services/api'
-import CategoryHeader, { navLinks } from './CategoryHeader'
+import CategoryHeader, { useNavCategories } from './CategoryHeader'
 
 const Navbar = () => {
     const { isAuthenticated, user, logout } = useAuth()
+    const navLinks = useNavCategories()
     const [activeLink, setActiveLink] = useState(null)
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
     const [showUserMenu, setShowUserMenu] = useState(false)

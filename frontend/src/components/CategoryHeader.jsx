@@ -1,15 +1,40 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import { categoriesAPI } from '../services/api'
 
-export const navLinks = [
+// Fallback nav links if API fails
+export const navLinksFallback = [
     { name: 'Beds', to: '/products?category=Beds' },
-    { name: 'Coffee & Center Tables', to: '/products?category=Coffee %26 Center Tables' },
-    { name: 'Dining Tables', to: '/products?category=Dining Tables' },
+    { name: 'Coffee & Center Tables', to: '/products?category=Coffee%20%26%20Center%20Tables' },
+    { name: 'Dining Tables', to: '/products?category=Dining%20Tables' },
     { name: 'Sofas', to: '/products?category=Sofas' },
-    { name: 'Lounge chair', to: '/products?category=Lounge chair' },
+    { name: 'Lounge chair', to: '/products?category=Lounge%20chair' },
 ]
 
+// Hook for fetching nav categories - use in both CategoryHeader and Navbar
+export function useNavCategories() {
+    const [navLinks, setNavLinks] = useState(navLinksFallback)
+
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                const res = await categoriesAPI.getNavbarCategories()
+                if (res.data.success && res.data.data?.length > 0) {
+                    setNavLinks(res.data.data)
+                }
+            } catch (err) {
+                console.error('Failed to fetch categories:', err)
+            }
+        }
+        fetchCategories()
+    }, [])
+
+    return navLinks
+}
+
 const CategoryHeader = ({ activeLink, setActiveLink }) => {
+    const navLinks = useNavCategories()
+
     return (
         <div className="py-2 overflow-x-auto no-scrollbar bg-white shadow-sm border-t border-gray-100">
             <div className="max-w-[1600px] mx-auto px-2 md:px-4 flex items-center justify-start lg:justify-center min-w-max gap-1.5 sm:gap-6">
